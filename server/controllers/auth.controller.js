@@ -50,3 +50,32 @@ export const signin = async (req, res, next) => {
     return next(error);
   }
 };
+
+export const googleAuth = async (req, res, next) => {
+  const { displayName, email, imageUrl } = req.body;
+  const user = await User.findOne({ email }).lean();
+  if (user) {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const { password, ...rest } = user;
+    return res
+      .status(200)
+      .cookie("access_token", token, { httpOnly: true })
+      .json(rest);
+  }
+  const password =
+    Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+  const hashPassword = bcryptjs.hashSync(password, 10);
+  const newUser = await User.create({
+    username: email.split("@")[0] + Math.random().toString(9).slice(-6),
+    password: hashPassword,
+    email,
+    imageUrl,
+  });
+  const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+  const { password: pw, ...rest } = newUser._doc;
+
+  return res
+    .status(201)
+    .cookie("access_token", token, { httpOnly: true })
+    .json(rest);
+};

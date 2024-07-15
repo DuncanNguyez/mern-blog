@@ -7,6 +7,7 @@ import {
   signInStart,
   signInSuccess,
 } from "../redux/user/userSlice";
+import OAuth from "../components/OAuth";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -101,18 +102,19 @@ export default function SignIn() {
                 "Sign In"
               )}
             </Button>
+            <OAuth></OAuth>
           </form>
+          {errorMessage && (
+            <Alert className="mt-5" color="failure">
+              {errorMessage}
+            </Alert>
+          )}
           <div className="flex gap-2 text-sm mt-5">
             <span>Don&apos;t have an account?</span>
             <Link to="/sign-up" className="text-blue-500">
               Sign up
             </Link>
           </div>
-          {errorMessage && (
-            <Alert className="mt-5" color="failure">
-              {errorMessage}
-            </Alert>
-          )}
         </div>
       </div>
     </div>
