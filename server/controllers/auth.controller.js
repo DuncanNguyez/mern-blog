@@ -41,10 +41,11 @@ export const signin = async (req, res, next) => {
       return next(errorHandler(400, "Invalid password"));
     }
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+    const { password: p, ...rest } = user;
     res
       .status(200)
       .cookie("access_token", token, { httpOnly: true })
-      .json({ message: "Sign in successful" });
+      .json(rest);
   } catch (error) {
     return next(error);
   }
