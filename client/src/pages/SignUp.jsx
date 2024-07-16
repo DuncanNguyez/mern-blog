@@ -1,5 +1,6 @@
 import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function SignUp() {
@@ -7,7 +8,14 @@ export default function SignUp() {
   const [formData, setFormData] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { currentUser } = useSelector((state) => state.user);
 
+  useEffect(() => {
+    if (currentUser) {
+      navigate("/home");
+    }
+  });
+  
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value.trim() }));
   };
