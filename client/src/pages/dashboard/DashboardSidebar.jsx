@@ -16,6 +16,7 @@ export default function DashboardSidebar() {
               label="User"
               labelColor="dark"
               active={path === "profile"}
+              as="div"
             ></Sidebar.Item>
           </Link>
         </Sidebar.ItemGroup>
