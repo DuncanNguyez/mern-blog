@@ -1,30 +1,33 @@
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
+import lodash from "lodash";
 
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
+import { userValidation } from "../utils/validation.js";
 
-export const signup = async (req, res, next) => {
+const { find } = lodash;
+
+const signup = async (req, res, next) => {
   const { username, email, password } = req.body;
-  if (
-    !username ||
-    !email ||
-    !password ||
-    username === "" ||
-    email === "" ||
-    password === ""
-  ) {
-    return next(errorHandler(400, "All fields are required!"));
-  }
   try {
+    const validated = userValidation({ user: { username, email, password } });
+    const message = find(validated, (message) => message != false);
+    if (message) {
+      return res.status(400).json({ message });
+    }
     const hashPassword = bcryptjs.hashSync(password, 10);
-    await User.create({ username, email, password: hashPassword });
+    await User.create({
+      username,
+      email,
+      password: hashPassword,
+    });
     return res.status(201).json({ message: "Signup successful!" });
   } catch (error) {
     return next(error);
   }
 };
-export const signin = async (req, res, next) => {
+const signin = async (req, res, next) => {
   const { username, password } = req.body;
 
   if (!username || !password || username === "" || password === "") {
@@ -51,8 +54,8 @@ export const signin = async (req, res, next) => {
   }
 };
 
-export const googleAuth = async (req, res, next) => {
-  const { displayName, email, imageUrl } = req.body;
+const googleAuth = async (req, res, next) => {
+  const { email, imageUrl } = req.body;
   const user = await User.findOne({ email }).lean();
   if (user) {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
@@ -79,3 +82,18 @@ export const googleAuth = async (req, res, next) => {
     .cookie("access_token", token, { httpOnly: true })
     .json(rest);
 };
+const protect = async (req, res, next) => {
+  const token = req.cookies.access_token;
+  if (!token) {
+    return next(errorHandler(401, "Unauthorized"));
+  }
+  jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
+    if (err) {
+      return next(errorHandler(401, "Unauthorized"));
+    }
+    req.user = payload;
+    return next();
+  });
+};
+
+export { signin, signup, googleAuth, protect };
