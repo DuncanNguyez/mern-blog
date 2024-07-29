@@ -1,6 +1,6 @@
-import { Alert, Button, TextInput } from "flowbite-react";
+import { Alert, Button, Spinner, TextInput } from "flowbite-react";
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   getDownloadURL,
   getStorage,
@@ -11,14 +11,24 @@ import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 
 import { app } from "../../firebase";
+import {
+  updateFailure,
+  updateStart,
+  updateSuccess,
+} from "../../redux/user/userSlice";
 
 export default function Profile() {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, error, loading } = useSelector((state) => state.user);
+
   const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(currentUser.imageUrl);
   const [imageFileUploadProcess, setImageFileUploadProcess] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
+  const [formData, setFormData] = useState(currentUser || {});
+  const [updateUserSuccess, setUpdateUserSuccess] = useState(false);
+
   const filePickerRef = useRef();
+  const dispatch = useDispatch();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -27,6 +37,41 @@ export default function Profile() {
       setImageUrl(URL.createObjectURL(file));
     }
   };
+  const handleFormChange = (data) => {
+    setFormData((prev) => ({ ...prev, ...data }));
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    dispatch(updateStart());
+    if (imageFileUploadProcess) {
+      return dispatch(updateFailure("Please wait for image to upload"));
+    }
+    try {
+      const res = await fetch(`/api/v1/user/update/${currentUser._id}`, {
+        method: "put",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return dispatch(updateFailure(data.message));
+      }
+      dispatch(updateSuccess(data));
+      setUpdateUserSuccess(true);
+    } catch (error) {
+      dispatch(updateFailure(error.message));
+    }
+  };
+
+  useEffect(() => {
+    if (updateUserSuccess) {
+      setTimeout(() => {
+        setUpdateUserSuccess(false);
+      }, 2000);
+    }
+  }, [updateUserSuccess]);
 
   useEffect(() => {
     if (imageFile) {
@@ -54,7 +99,10 @@ export default function Profile() {
         async () => {
           setImageFileUploadError(null);
           setImageFileUploadProcess(null);
-          setImageUrl(await getDownloadURL(uploadTask.snapshot.ref));
+          setImageFile(null);
+          const url = await getDownloadURL(uploadTask.snapshot.ref);
+          setImageUrl(url);
+          setFormData((prev) => ({ ...prev, imageUrl: url }));
         }
       );
     }
@@ -70,7 +118,11 @@ export default function Profile() {
         type="file"
         accept="image/*"
       />
-      <form className="flex flex-col gap-3 my-3" action="">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-3 my-3"
+        action=""
+      >
         <div
           className=" relative w-32 h-32 self-center cursor-pointer shadow-md overflow-hidden rounded-full"
           onClick={() => filePickerRef.current.click()}
@@ -114,22 +166,39 @@ export default function Profile() {
           id="username"
           placeholder="username"
           defaultValue={currentUser.username}
+          onChange={(e) => handleFormChange({ username: e.target.value })}
         />
         <TextInput
           type="email"
           id="email"
           placeholder="email"
           defaultValue={currentUser.email}
+          onChange={(e) => handleFormChange({ email: e.target.value })}
         />
         <TextInput
           autoComplete="true"
           type="password"
           id="password"
           placeholder="password"
+          onChange={(e) => handleFormChange({ password: e.target.value })}
         />
-        <Button type="submit" gradientDuoTone="purpleToBlue" outline>
-          Update
+        <Button
+          type="submit"
+          gradientDuoTone="purpleToBlue"
+          outline
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Spinner size="sm" />
+              <span className="pl-3">Loading...</span>
+            </>
+          ) : (
+            "Update"
+          )}
         </Button>
+        {error && <Alert color={"failure"}>{error}</Alert>}
+        {updateUserSuccess && <Alert color={"success"}>Successful</Alert>}
       </form>
       <div className="text-red-500 flex justify-between">
         <span className="cursor-pointer">Delete Account</span>
