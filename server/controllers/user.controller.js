@@ -15,6 +15,7 @@ const updateUser = async (req, res, next) => {
     }
     const { body } = req;
     const validated = await userValidation({ user: body, id: user.userId });
+    console.log({validated})
     const message = find(validated, (item) => item != false);
     if (message) {
       return res.status(400).json({ message });
@@ -29,6 +30,7 @@ const updateUser = async (req, res, next) => {
     const { password, ...rest } = userUpdated;
     return res.status(200).json(rest);
   } catch (error) {
+    console.log(error)
     next(error);
   }
 };

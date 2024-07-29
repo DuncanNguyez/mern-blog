@@ -7,11 +7,11 @@ const rules = {
     value === null || value === undefined ? `${name} is not null` : false,
   blank: ({ name, value }) => (value === "" ? `${name} is not blank` : false),
   minLength: ({ name, value, check }) =>
-    value.length < check
+    value?.length < check
       ? `${name} must be at least ${check} characters`
       : false,
   includes: ({ name, value, check }) =>
-    value.includes(check) ? `${name} can not contain '${check}'` : false,
+    value?.includes(check) ? `${name} can not contain '${check}'` : false,
   unique: async ({ name, value, modelName, docId }) => {
     const doc = await mongoose
       .model(modelName)
@@ -40,7 +40,12 @@ const userValidation = async ({
       { fun: blank },
       { fun: unique, rest: { modelName: "User", docId: id } },
     ],
-    password: [{ fun: notNull }, { fun: blank }, { fun: minLength, rest: 6 }],
+    password: [
+      { fun: notNull },
+      { fun: blank },
+      { fun: includes, rest: { check: " " } },
+      { fun: minLength, rest: { check: 6 } },
+    ],
   };
   return await Promise.all(
     flatMap(fields, (field) => {

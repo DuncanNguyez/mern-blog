@@ -58,7 +58,7 @@ const googleAuth = async (req, res, next) => {
   const { email, imageUrl } = req.body;
   const user = await User.findOne({ email }).lean();
   if (user) {
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
     const { password, ...rest } = user;
     return res
       .status(200)
@@ -74,7 +74,7 @@ const googleAuth = async (req, res, next) => {
     email,
     imageUrl,
   });
-  const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+  const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET);
   const { password: pw, ...rest } = newUser._doc;
 
   return res
