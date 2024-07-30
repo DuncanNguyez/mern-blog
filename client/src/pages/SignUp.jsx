@@ -1,33 +1,38 @@
 import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  signInFailure,
+  signInStart,
+  signInSuccess,
+} from "../redux/user/userSlice";
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import { app } from "../firebase";
 
 export default function SignUp() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({});
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const { currentUser } = useSelector((state) => state.user);
-
+  const { currentUser, error, loading } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
   useEffect(() => {
     if (currentUser) {
       navigate("/home");
     }
   });
-  
+
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value.trim() }));
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    dispatch(signInStart());
     const { username, email, password } = formData;
     if ((!username, !email, !password)) {
-      return setErrorMessage("Please fill out all fields ");
+      return dispatch(signInFailure("Please fill out all fields "));
     }
     try {
-      setErrorMessage(null);
-      setLoading(true);
+      await createUserWithEmailAndPassword(getAuth(app), email, password);
       const res = await fetch("/api/v1/auth/sign-up", {
         method: "post",
         headers: {
@@ -35,18 +40,15 @@ export default function SignUp() {
         },
         body: JSON.stringify(formData),
       });
+
       const data = await res.json();
-      setLoading(false);
-      if (data.success === false) {
-        return setErrorMessage(data.message);
-      }
       if (res.ok) {
-        alert(data.message);
-        navigate("/sing-in");
+        dispatch(signInSuccess(data));
+        return navigate("/home");
       }
+      return dispatch(signInFailure(data.message));
     } catch (error) {
-      setErrorMessage(error.message);
-      setLoading(false);
+      return dispatch(signInFailure(error.message));
     }
   };
   return (
@@ -57,9 +59,8 @@ export default function SignUp() {
             to="/home"
             className="self-center whitespace-nowrap text-4xl font-bold dark:text-white "
           >
-            <span className=" text-white px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg">
-              {" "}
-              Sahand&apos;s{" "}
+            <span className="mx-1 text-white px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg">
+              Duncan&apos;s
             </span>
             Blog
           </Link>
@@ -123,9 +124,9 @@ export default function SignUp() {
               Sign in
             </Link>
           </div>
-          {errorMessage && (
+          {error && (
             <Alert className="mt-5" color="failure">
-              {errorMessage}
+              {error}
             </Alert>
           )}
         </div>
