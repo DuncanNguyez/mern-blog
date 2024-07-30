@@ -23,6 +23,7 @@ import {
   updateSuccess,
 } from "../../redux/user/userSlice";
 import { getAuth } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
   const { currentUser, error, loading } = useSelector((state) => state.user);
@@ -36,7 +37,7 @@ export default function Profile() {
   const [showModal, setShowModal] = useState(false);
   const filePickerRef = useRef();
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -76,6 +77,7 @@ export default function Profile() {
       getAuth(app).signOut();
       await fetch("/api/v1/auth/sign-out", { method: "post" });
       dispatch(signOutSuccess());
+      navigate("/sign-in");
     } catch (error) {
       console.log(error);
     }
@@ -86,17 +88,22 @@ export default function Profile() {
       const res = await fetch(`api/v1/user/delete/${currentUser._id}`);
       if (res.ok) {
         dispatch(deleteSuccess());
-        const storage = getStorage(app);
-        const desertRef = ref(storage, currentUser.imageUrl);
-        deleteObject(desertRef).catch((error) => {
-          console.log(error);
-        });
+
+        getAuth(app).currentUser.delete();
         return;
       }
       const data = await res.json();
       dispatch(deleteFailure(data.message));
     } catch (error) {
       dispatch(deleteFailure(error.message));
+    } finally {
+      const storage = getStorage(app);
+      try {
+        const desertRef = ref(storage, currentUser.imageUrl);
+        deleteObject(desertRef);
+      } catch (error) {
+        console.log(error.message);
+      }
     }
   };
   useEffect(() => {

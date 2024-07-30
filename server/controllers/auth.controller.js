@@ -17,12 +17,13 @@ const signup = async (req, res, next) => {
       return res.status(400).json({ message });
     }
     const hashPassword = bcryptjs.hashSync(password, 10);
-    await User.create({
+    const user = await User.create({
       username,
       email,
       password: hashPassword,
     });
-    return res.status(201).json({ message: "Signup successful!" });
+    const { password: pw, ...rest } = user._doc;
+    return res.status(201).json(rest);
   } catch (error) {
     return next(error);
   }
@@ -106,4 +107,4 @@ const signout = (req, res, next) => {
   }
 };
 
-export { signin, signup, googleAuth, protect,signout };
+export { signin, signup, googleAuth, protect, signout };

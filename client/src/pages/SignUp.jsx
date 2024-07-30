@@ -31,8 +31,14 @@ export default function SignUp() {
     if ((!username, !email, !password)) {
       return dispatch(signInFailure("Please fill out all fields "));
     }
+    const auth = getAuth(app);
     try {
-      await createUserWithEmailAndPassword(getAuth(app), email, password);
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      return dispatch(signInFailure(error.message));
+    }
+
+    try {
       const res = await fetch("/api/v1/auth/sign-up", {
         method: "post",
         headers: {
@@ -48,6 +54,7 @@ export default function SignUp() {
       }
       return dispatch(signInFailure(data.message));
     } catch (error) {
+      auth.currentUser.delete();
       return dispatch(signInFailure(error.message));
     }
   };

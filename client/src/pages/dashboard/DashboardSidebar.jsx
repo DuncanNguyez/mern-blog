@@ -1,6 +1,6 @@
 import { Sidebar } from "flowbite-react";
 import { HiUser, HiLogout } from "react-icons/hi";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import { useDispatch } from "react-redux";
 
@@ -11,11 +11,14 @@ export default function DashboardSidebar() {
   const location = useLocation();
   const path = location.pathname.replace(/.+\//, "");
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const handleSignOut = async () => {
     try {
       getAuth(app).signOut();
       await fetch("/api/v1/auth/sign-out", { method: "post" });
       dispatch(signOutSuccess());
+      navigate("/sign-in");
     } catch (error) {
       console.log(error);
     }
