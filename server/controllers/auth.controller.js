@@ -95,5 +95,15 @@ const protect = async (req, res, next) => {
     return next();
   });
 };
+const signout = (req, res, next) => {
+  try {
+    return res
+      .status(200)
+      .clearCookie("access_token")
+      .json({ message: "User has been sign out" });
+  } catch (error) {
+    return next(error);
+  }
+};
 
-export { signin, signup, googleAuth, protect };
+export { signin, signup, googleAuth, protect,signout };

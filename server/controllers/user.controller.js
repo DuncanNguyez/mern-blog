@@ -11,11 +11,10 @@ const updateUser = async (req, res, next) => {
     const { userId } = req.params;
     const user = req.user;
     if (userId !== user.userId) {
-      return next(errorHandler(403, "Forbidden"));
+      return next(errorHandler(403, "Access is not allowed"));
     }
     const { body } = req;
     const validated = await userValidation({ user: body, id: user.userId });
-    console.log({validated})
     const message = find(validated, (item) => item != false);
     if (message) {
       return res.status(400).json({ message });
@@ -30,8 +29,23 @@ const updateUser = async (req, res, next) => {
     const { password, ...rest } = userUpdated;
     return res.status(200).json(rest);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     next(error);
   }
 };
-export { updateUser };
+const deleteUser = async (req, res, next) => {
+  try {
+    const userId = req.params;
+    if (userId != req.user.userId) {
+      return next(errorHandler(403, "Access is not allowed"));
+    }
+    await User.findByIdAndDelete(userId);
+    return res
+      .status(204)
+      .json({ success: true, message: "User has been deleted" });
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
+};
+export { updateUser, deleteUser };

@@ -1,7 +1,9 @@
-import { Alert, Button, Spinner, TextInput } from "flowbite-react";
+import { Alert, Button, Modal, Spinner, TextInput } from "flowbite-react";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 import {
+  deleteObject,
   getDownloadURL,
   getStorage,
   ref,
@@ -12,10 +14,15 @@ import "react-circular-progressbar/dist/styles.css";
 
 import { app } from "../../firebase";
 import {
+  deleteFailure,
+  deleteStart,
+  deleteSuccess,
+  signOutSuccess,
   updateFailure,
   updateStart,
   updateSuccess,
 } from "../../redux/user/userSlice";
+import { getAuth } from "firebase/auth";
 
 export default function Profile() {
   const { currentUser, error, loading } = useSelector((state) => state.user);
@@ -26,7 +33,7 @@ export default function Profile() {
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
   const [formData, setFormData] = useState(currentUser || {});
   const [updateUserSuccess, setUpdateUserSuccess] = useState(false);
-
+  const [showModal, setShowModal] = useState(false);
   const filePickerRef = useRef();
   const dispatch = useDispatch();
 
@@ -64,7 +71,34 @@ export default function Profile() {
       dispatch(updateFailure(error.message));
     }
   };
-
+  const handleSignOut = async () => {
+    try {
+      getAuth(app).signOut();
+      await fetch("/api/v1/auth/sign-out", { method: "post" });
+      dispatch(signOutSuccess());
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleDeleteAccount = async () => {
+    try {
+      dispatch(deleteStart());
+      const res = await fetch(`api/v1/user/delete/${currentUser._id}`);
+      if (res.ok) {
+        dispatch(deleteSuccess());
+        const storage = getStorage(app);
+        const desertRef = ref(storage, currentUser.imageUrl);
+        deleteObject(desertRef).catch((error) => {
+          console.log(error);
+        });
+        return;
+      }
+      const data = await res.json();
+      dispatch(deleteFailure(data.message));
+    } catch (error) {
+      dispatch(deleteFailure(error.message));
+    }
+  };
   useEffect(() => {
     if (updateUserSuccess) {
       setTimeout(() => {
@@ -75,6 +109,7 @@ export default function Profile() {
 
   useEffect(() => {
     if (imageFile) {
+      getAuth(app);
       const storage = getStorage(app);
       const fileName = new Date().getTime() + imageFile.name;
       const storageRef = ref(storage, fileName);
@@ -201,9 +236,39 @@ export default function Profile() {
         {updateUserSuccess && <Alert color={"success"}>Successful</Alert>}
       </form>
       <div className="text-red-500 flex justify-between">
-        <span className="cursor-pointer">Delete Account</span>
-        <span className="cursor-pointer">Sign Out</span>
+        <span onClick={() => setShowModal(true)} className="cursor-pointer">
+          Delete Account
+        </span>
+        <span onClick={handleSignOut} className="cursor-pointer">
+          Sign Out
+        </span>
       </div>
+      {
+        <Modal
+          show={showModal}
+          onClose={() => setShowModal(false)}
+          popup
+          size="md"
+        >
+          <Modal.Header />
+          <Modal.Body>
+            <div className="text-center">
+              <HiOutlineExclamationCircle className="mx-auto mb-4 text-gray-400 dark:text-gray-200 size-14" />
+              <h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">
+                Are you sure you want to delete your account ?
+              </h3>
+              <div className="flex justify-center gap-4">
+                <Button onClick={handleDeleteAccount} color={"failure"}>
+                  Yes, i&#39;m sure
+                </Button>
+                <Button onClick={() => setShowModal(false)} color={"gray"}>
+                  No, cancel
+                </Button>
+              </div>
+            </div>
+          </Modal.Body>
+        </Modal>
+      }
     </div>
   );
 }
