@@ -10,6 +10,7 @@ import PrivateRoute from "./components/PrivateRoute";
 
 import dashboardRoutes from "./pages/dashboard/dashboardRoutes.jsx";
 import Dashboard from "./pages/dashboard/Dashboard.jsx";
+import AuthorRoute from "./components/AuthorRoute.jsx";
 
 export default function App() {
   return (
@@ -21,9 +22,15 @@ export default function App() {
         <Route path="/sign-up" element={<SignUp />}></Route>
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<Dashboard />}>
-            {dashboardRoutes.map(({ path, element }) => (
-              <Route element={element} path={path} key={path} />
-            ))}
+            {dashboardRoutes.map(({ path, element, onlyAdmin }) =>
+              !onlyAdmin ? (
+                <Route element={element} path={path} key={path} />
+              ) : (
+                <Route element={<AuthorRoute />} key={path}>
+                  <Route element={element} path={path} />
+                </Route>
+              )
+            )}
           </Route>
         </Route>
         <Route path="/projects" element={<Projects />}></Route>

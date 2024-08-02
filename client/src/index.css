@@ -1,3 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.bn-container > div:nth-child(1){
+    min-height: 300px;
+  }

@@ -22,7 +22,7 @@ import {
   updateStart,
   updateSuccess,
 } from "../../redux/user/userSlice";
-import { getAuth } from "firebase/auth";
+import { getAuth, updatePassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
@@ -53,6 +53,13 @@ export default function Profile() {
     dispatch(updateStart());
     if (imageFileUploadProcess) {
       return dispatch(updateFailure("Please wait for image to upload"));
+    }
+    try {
+      const user = getAuth(app).currentUser;
+      if (!formData.password) throw new Error("invalid password");
+      await updatePassword(user, formData.password);
+    } catch (error) {
+      return dispatch(updateFailure(error.message));
     }
     try {
       const res = await fetch(`/api/v1/user/update/${currentUser._id}`, {

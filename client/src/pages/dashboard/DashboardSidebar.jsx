@@ -1,8 +1,8 @@
 import { Sidebar } from "flowbite-react";
-import { HiUser, HiLogout } from "react-icons/hi";
+import { HiDocumentAdd, HiUser, HiLogout } from "react-icons/hi";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { app } from "../../firebase";
 import { signOutSuccess } from "../../redux/user/userSlice";
@@ -12,7 +12,7 @@ export default function DashboardSidebar() {
   const path = location.pathname.replace(/.+\//, "");
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const { currentUser } = useSelector((state) => state.user);
   const handleSignOut = async () => {
     try {
       getAuth(app).signOut();
@@ -30,13 +30,27 @@ export default function DashboardSidebar() {
           <Link to={"/dashboard/profile"}>
             <Sidebar.Item
               icon={HiUser}
-              label="User"
+              label={currentUser.isAuthor ? "Author" : "User"}
               labelColor="dark"
               active={path === "profile"}
               as="div"
             ></Sidebar.Item>
           </Link>
         </Sidebar.ItemGroup>
+        {currentUser && currentUser.isAuthor && (
+          <Sidebar.ItemGroup>
+            <Link to={"/dashboard/create-post"}>
+              <Sidebar.Item
+                icon={HiDocumentAdd}
+                active={path === "create-post"}
+                as="div"
+                
+              >
+               < span className="font-semibold">Create post</span>
+              </Sidebar.Item>
+            </Link>
+          </Sidebar.ItemGroup>
+        )}
         <Sidebar.ItemGroup>
           <Sidebar.Item className="cursor-pointer" icon={HiLogout}>
             <span onClick={handleSignOut} className="text-red-500">

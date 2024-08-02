@@ -1,4 +1,11 @@
-import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
+import {
+  Alert,
+  Button,
+  Checkbox,
+  Label,
+  Spinner,
+  TextInput,
+} from "flowbite-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
@@ -22,7 +29,11 @@ export default function SignUp() {
   });
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value.trim() }));
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.id]:
+        e.target.type === "checkbox" ? e.target.checked : e.target.value.trim(),
+    }));
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,6 +120,14 @@ export default function SignUp() {
                 id="password"
                 autoComplete="true"
               />
+            </div>
+            <div>
+              <Checkbox
+                className="mr-3"
+                onChange={handleChange}
+                id="isAuthor"
+              />
+              <Label value="Is Author" />
             </div>
             <Button
               type="submit"

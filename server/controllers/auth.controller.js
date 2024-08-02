@@ -9,7 +9,7 @@ import { userValidation } from "../utils/validation.js";
 const { find } = lodash;
 
 const signup = async (req, res, next) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, isAuthor } = req.body;
   try {
     const validated = userValidation({ user: { username, email, password } });
     const message = find(validated, (message) => message != false);
@@ -21,6 +21,7 @@ const signup = async (req, res, next) => {
       username,
       email,
       password: hashPassword,
+      isAuthor,
     });
     const { password: pw, ...rest } = user._doc;
     return res.status(201).json(rest);

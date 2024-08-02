@@ -8,6 +8,8 @@ import {
   signInSuccess,
 } from "../redux/user/userSlice";
 import OAuth from "../components/OAuth";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { app } from "../firebase";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -49,6 +51,7 @@ export default function SignIn() {
         return dispatch(signInFailure(data.message));
       }
       dispatch(signInSuccess(data));
+      await signInWithEmailAndPassword(getAuth(app), data.email, password);
       navigate("/home");
     } catch (error) {
       dispatch(signInFailure(error.message));

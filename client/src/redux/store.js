@@ -6,10 +6,12 @@ import createTransform from "redux-persist/es/createTransform";
 
 import userReducer from "./user/userSlice.js";
 import themeReducer from "./theme/themSlice.js";
+import draftSlice from "./draft/draftSlice.js";
 
 const rootReducer = combineReducers({
   user: userReducer,
   theme: themeReducer,
+  draft: draftSlice,
 });
 
 const transform = createTransform(
