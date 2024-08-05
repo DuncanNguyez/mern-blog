@@ -4,8 +4,8 @@ import DashboardSidebar from "./DashboardSidebar";
 
 export default function Dashboard() {
   return (
-    <div className="flex flex-col md:flex-row">
-      <DashboardSidebar />
+    <div className="flex relative flex-col md:flex-row">
+      <DashboardSidebar  />
       <Outlet />
     </div>
   );

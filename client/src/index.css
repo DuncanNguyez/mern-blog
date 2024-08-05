@@ -1,6 +1,207 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-.bn-container > div:nth-child(1){
-    min-height: 300px;
-  }
+.bn-container > div:nth-child(1) {
+  min-height: 300px;
+}
+.MuiBox-root ul,
+ol {
+  padding-left: 40px;
+}
+.tiptap .code-block {
+  position: relative;
+}
+.tiptap .code-block select {
+  position: absolute;
+  background-color: var(--white);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="Black" d="M7 10l5 5 5-5z"/></svg>');
+  right: 0.5rem;
+  top: 0.5rem;
+  height: 25px;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-radius: 5px;
+}
+
+/* CSS for Lowlight.js Syntax Highlighting */
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  color: #abb2bf;
+  background: #282c34;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #5c6370;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: #e06c75;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-symbol,
+.hljs-code,
+.hljs-selector-class {
+  color: #d19a66;
+}
+
+.hljs-string,
+.hljs-meta-string {
+  color: #98c379;
+}
+
+.hljs-regexp,
+.hljs-template-tag,
+.hljs-template-variable {
+  color: #56b6c2;
+}
+
+.hljs-title,
+.hljs-section {
+  color: #61aeee;
+}
+
+.hljs-attribute {
+  color: #d19a66;
+}
+
+.hljs-name,
+.hljs-tag {
+  color: #e06c75;
+}
+
+.hljs-variable {
+  color: #d19a66;
+}
+
+.hljs-bullet,
+.hljs-meta,
+.hljs-link {
+  color: #61aeee;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+
+.hljs-formula {
+  background: #073655;
+}
+
+.hljs-deletion {
+  background: #bd2c00;
+  color: #fff;
+}
+
+.hljs-addition {
+  background: #134d00;
+  color: #fff;
+}
+
+.hljs-selector-attr {
+  color: #d19a66;
+}
+
+.hljs-selector-pseudo {
+  color: #d19a66;
+}
+
+.hljs-section {
+  color: #61aeee;
+}
+
+.hljs-type {
+  color: #e06c75;
+}
+
+.hljs-quote {
+  color: #5c6370;
+  font-style: italic;
+}
+
+.hljs-selector-id {
+  color: #e06c75;
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+  color: #e6c07b;
+}
+
+.hljs-symbol {
+  color: #61aeee;
+}
+
+.hljs-bullet {
+  color: #61aeee;
+}
+
+.hljs-link {
+  color: #61aeee;
+}
+
+.hljs-meta {
+  color: #5c6370;
+}
+
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: #e06c75;
+}
+
+.hljs-template-tag,
+.hljs-template-variable {
+  color: #d19a66;
+}
+
+.hljs-type,
+.hljs-tag,
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-symbol,
+.hljs-name,
+.hljs-link {
+  color: #61aeee;
+}
+
+.hljs-subst,
+.hljs-code,
+.hljs-number,
+.hljs-regexp,
+.hljs-meta,
+.hljs-comment,
+.hljs-formula {
+  color: #abb2bf;
+}
+
+.hljs-punctuation,
+.hljs-operator {
+  color: #abb2bf;
+}
+
+.hljs-title,
+.hljs-section {
+  color: #61aeee;
+}
+
+.hljs-deletion {
+  background: #bd2c00;
+  color: #abb2bf;
+}
+
+.hljs-addition {
+  background: #134d00;
+  color: #abb2bf;
+}

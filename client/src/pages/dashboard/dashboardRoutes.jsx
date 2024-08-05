@@ -1,5 +1,5 @@
-import CreatePost from "./CreatePost";
 import Profile from "./Profile";
+import CreatePost from './CreatePost/CreatePost';
 
 export default [
   {

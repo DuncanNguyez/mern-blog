@@ -24,7 +24,7 @@ export default function DashboardSidebar() {
     }
   };
   return (
-    <Sidebar className="min-h-screen w-full md:w-56">
+    <Sidebar className="min-h-screen md:top-0 md:sticky w-full md:w-56">
       <Sidebar.Items className="h-screen">
         <Sidebar.ItemGroup>
           <Link to={"/dashboard/profile"}>
