@@ -1,4 +1,5 @@
 import { useTheme } from "@mui/material";
+import PropTypes from "prop-types";
 import {
   MenuButtonAddTable,
   MenuButtonBlockquote,
@@ -32,7 +33,7 @@ import {
   isTouchDevice,
 } from "mui-tiptap";
 
-export default function EditorMenuControls() {
+export default function EditorMenuControls({ uploadImage }) {
   const theme = useTheme();
   return (
     <MenuControlsContainer>
@@ -117,21 +118,7 @@ export default function EditorMenuControls() {
       <MenuButtonCodeBlock />
       <MenuDivider />
 
-      <MenuButtonImageUpload
-        onUploadFiles={(files) =>
-          // For the sake of a demo, we don't have a server to upload the files
-          // to, so we'll instead convert each one to a local "temporary" object
-          // URL. This will not persist properly in a production setting. You
-          // should instead upload the image files to your server, or perhaps
-          // convert the images to bas64 if you would like to encode the image
-          // data directly into the editor content, though that can make the
-          // editor content very large.
-          files.map((file) => ({
-            src: URL.createObjectURL(file),
-            alt: file.name,
-          }))
-        }
-      />
+      <MenuButtonImageUpload onUploadFiles={uploadImage} />
       <MenuDivider />
 
       <MenuButtonHorizontalRule />
@@ -146,3 +133,6 @@ export default function EditorMenuControls() {
     </MenuControlsContainer>
   );
 }
+EditorMenuControls.propTypes = {
+  uploadImage: PropTypes.func.isRequired,
+};
