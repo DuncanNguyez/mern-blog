@@ -8,32 +8,29 @@ export default function CodeBlockLowlightComponent(props) {
     },
     updateAttributes,
     extension,
+    editor: {
+      view: { editable },
+    },
   } = props;
-  console.log(props.node.content.content[0]);
   return (
     <NodeViewWrapper className="code-block">
       <select
         contentEditable={false}
+        disabled={!editable}
         defaultValue={defaultLanguage}
         onChange={(event) => {
           updateAttributes({ language: event.target.value });
         }}
       >
         <option
-          className=" dark:text-gray-200 dark:bg-[rgb(23,30,48)]"
+          className="dark:text-gray-200 dark:bg-[rgb(23,30,48)]"
           value="null"
         >
           auto
         </option>
-        <option
-          className=" dark:text-gray-200 dark:bg-[rgb(23,30,48)]"
-          disabled
-        >
-          —
-        </option>
         {extension.options.lowlight.listLanguages().map((lang, index) => (
           <option
-            className=" dark:text-gray-200 dark:bg-[rgb(23,30,48)]"
+            className="dark:text-gray-200 dark:bg-[rgb(23,30,48)]"
             key={index}
             value={lang}
           >
@@ -51,4 +48,5 @@ CodeBlockLowlightComponent.propTypes = {
   node: PropTypes.object.isRequired,
   updateAttributes: PropTypes.func.isRequired,
   extension: PropTypes.object.isRequired,
+  editor: PropTypes.object,
 };
