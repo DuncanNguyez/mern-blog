@@ -1,5 +1,6 @@
+import PropsType from "prop-types";
 import { RichTextEditor } from "mui-tiptap";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { getAuth } from "firebase/auth";
 import {
   deleteObject,
@@ -14,8 +15,7 @@ import EditorMenuControls from "./EditorMenuControls";
 import { updateDraftEditor } from "../../../redux/draft/draftSlice";
 import { app } from "../../../firebase";
 
-export default function PostEditor() {
-  const { editorDoc } = useSelector((state) => state.draft);
+export default function PostEditor({ editorRef, editorDoc }) {
   const dispatch = useDispatch();
   const findImageNode = (node, imagesData) => {
     if (!node) {
@@ -94,13 +94,17 @@ export default function PostEditor() {
     }
   };
   return (
-    <div>
-      <RichTextEditor
-        content={editorDoc}
-        extensions={extensions}
-        renderControls={() => <EditorMenuControls uploadImage={uploadImage} />}
-        onUpdate={handleChangeEditor}
-      />
-    </div>
+    <RichTextEditor
+      ref={editorRef}
+      className="min-h-96"
+      content={editorDoc}
+      extensions={extensions}
+      renderControls={() => <EditorMenuControls uploadImage={uploadImage} />}
+      onUpdate={handleChangeEditor}
+    />
   );
 }
+PostEditor.propTypes = {
+  editorRef: PropsType.object,
+  editorDoc: PropsType.object,
+};

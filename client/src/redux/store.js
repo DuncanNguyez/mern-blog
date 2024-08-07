@@ -17,7 +17,7 @@ const rootReducer = combineReducers({
 const transform = createTransform(
   (inboundState) => inboundState,
   (outboundState, key) => {
-    if (key === "user") {
+    if (key === "user" || key === "draft") {
       outboundState.error = null;
       outboundState.loading = null;
     }
