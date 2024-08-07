@@ -45,7 +45,10 @@ const signin = async (req, res, next) => {
     if (!validPw) {
       return next(errorHandler(400, "Invalid password"));
     }
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign(
+      { userId: user._id, isAuthor: user.isAuthor },
+      process.env.JWT_SECRET
+    );
     const { password: p, ...rest } = user;
     res
       .status(200)
@@ -60,7 +63,10 @@ const googleAuth = async (req, res, next) => {
   const { email, imageUrl } = req.body;
   const user = await User.findOne({ email }).lean();
   if (user) {
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign(
+      { userId: user._id, isAuthor: user.isAuthor },
+      process.env.JWT_SECRET
+    );
     const { password, ...rest } = user;
     return res
       .status(200)
@@ -76,7 +82,10 @@ const googleAuth = async (req, res, next) => {
     email,
     imageUrl,
   });
-  const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET);
+  const token = jwt.sign(
+    { userId: newUser._id, isAuthor: user.isAuthor },
+    process.env.JWT_SECRET
+  );
   const { password: pw, ...rest } = newUser._doc;
 
   return res
@@ -97,6 +106,14 @@ const protect = async (req, res, next) => {
     return next();
   });
 };
+
+const authorProtect = async (req, res, next) => {
+  if (req.user.isAuthor) {
+    return next();
+  }
+  return next(errorHandler(403, "Access is not allowed"));
+};
+
 const signout = (req, res, next) => {
   try {
     return res
@@ -108,4 +125,4 @@ const signout = (req, res, next) => {
   }
 };
 
-export { signin, signup, googleAuth, protect, signout };
+export { signin, signup, googleAuth, protect, authorProtect, signout };
