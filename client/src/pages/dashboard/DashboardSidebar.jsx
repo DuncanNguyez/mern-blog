@@ -44,9 +44,8 @@ export default function DashboardSidebar() {
                 icon={HiDocumentAdd}
                 active={path === "create-post"}
                 as="div"
-                
               >
-               < span className="font-semibold">Create post</span>
+                <span className="font-semibold">Create post</span>
               </Sidebar.Item>
             </Link>
           </Sidebar.ItemGroup>
