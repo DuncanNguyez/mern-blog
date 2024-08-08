@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   title: "",
+  hashtags: [],
   editorDoc: null,
   loading: false,
   error: null,
@@ -13,6 +14,9 @@ const draftSlice = createSlice({
   reducers: {
     updateDraftTitle: (state, action) => {
       state.title = action.payload;
+    },
+    updateDraftHashtags: (state, action) => {
+      state.hashtags = action.payload;
     },
     updateDraftEditor: (state, action) => {
       state.editorDoc = action.payload;
@@ -30,12 +34,14 @@ const draftSlice = createSlice({
       state.error = null;
       state.title = "";
       state.editorDoc = null;
+      state.hashtags = [];
     },
   },
 });
 
 export const {
   updateDraftTitle,
+  updateDraftHashtags,
   updateDraftEditor,
   startSubmitPost,
   submitPostFailure,

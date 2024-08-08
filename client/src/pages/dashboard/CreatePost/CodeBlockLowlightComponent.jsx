@@ -13,7 +13,8 @@ export default function CodeBlockLowlightComponent(props) {
     },
   } = props;
   return (
-    <NodeViewWrapper className="code-block">
+    <NodeViewWrapper className="code-block pt-8">
+
       <select
         contentEditable={false}
         disabled={!editable}
@@ -39,7 +40,7 @@ export default function CodeBlockLowlightComponent(props) {
         ))}
       </select>
       <pre>
-        <NodeViewContent as="code" />
+        <NodeViewContent  as="code" />
       </pre>
     </NodeViewWrapper>
   );

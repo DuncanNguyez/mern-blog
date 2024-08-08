@@ -5,7 +5,8 @@ const { flatMap } = lodash;
 const rules = {
   notNull: ({ name, value }) =>
     value === null || value === undefined ? `${name} is not null` : false,
-  blank: ({ name, value }) => (value === "" ? `${name} is not blank` : false),
+  blank: ({ name, value }) =>
+    value.length === 0 ? `${name} is not blank` : false,
   minLength: ({ name, value, check }) =>
     value?.length < check
       ? `${name} must be at least ${check} characters`
@@ -47,6 +48,7 @@ const userValidation = async ({
       { fun: minLength, rest: { check: 6 } },
     ],
   };
+
   return await Promise.all(
     flatMap(fields, (field) => {
       return fieldsValidation[field].map(({ fun, rest }) => {
@@ -55,4 +57,23 @@ const userValidation = async ({
     })
   );
 };
-export { userValidation };
+
+const postValidation = ({
+  post,
+  fields = ["title", "doc", "authorId", "hashtags"],
+}) => {
+  const fieldsValidation = {
+    title: [{ fun: notNull }, { fun: blank }],
+    doc: [{ fun: notNull }],
+    authorId: [{ fun: notNull }, { fun: blank }],
+    hashtags: [{ fun: notNull }, { fun: blank }],
+  };
+
+  return flatMap(fields, (field) => {
+    return fieldsValidation[field].map(({ fun, rest }) =>
+      fun({ name: field, value: post[field], ...rest })
+    );
+  });
+};
+
+export { userValidation, postValidation };
