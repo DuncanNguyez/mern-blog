@@ -35,7 +35,7 @@ export default function Header() {
         </span>
         Blog
       </Link>
-      <form>
+      <form className="flex-1 mx-16">
         <TextInput
           type="text"
           placeholder="Search..."
@@ -43,12 +43,12 @@ export default function Header() {
           className="hidden lg:inline"
         ></TextInput>
       </form>
-      <Button className="w-12 h-10 lg:hidden" color="gray" pill>
+      <Button className="w-12 h-10 lg:hidden size-[45px]" color="gray" pill>
         <AiOutlineSearch />
       </Button>
       <div className="flex gap-2 md:order-2">
         <Button
-          className="w-12 h-10 hidden sm:inline"
+          className="w-12 h-10 hidden size-[45px]  sm:inline"
           color="gray"
           pill
           onClick={() => dispatch(toggleTheme())}
@@ -67,10 +67,15 @@ export default function Header() {
               </span>
             </Dropdown.Header>
             <Link to="/dashboard/profile">
+              <Dropdown.Item>Dashboard</Dropdown.Item>
+            </Link>
+            <Link to="/dashboard/profile">
               <Dropdown.Item>Profile</Dropdown.Item>
             </Link>
             <Dropdown.Divider />
-            <Dropdown.Item onClick={handleSignOut}>Sign out</Dropdown.Item>
+            <Dropdown.Item onClick={handleSignOut}>
+              <span className="text-red-500">Sign out</span>
+            </Dropdown.Item>
           </Dropdown>
         ) : (
           <Link to="/sign-in">
@@ -81,7 +86,7 @@ export default function Header() {
         )}
         <Navbar.Toggle />
       </div>
-      <Navbar.Collapse>
+      <Navbar.Collapse className="mx-2">
         <Navbar.Link active={path === "/home"} as="div">
           <Link to="/home">Home</Link>
         </Navbar.Link>

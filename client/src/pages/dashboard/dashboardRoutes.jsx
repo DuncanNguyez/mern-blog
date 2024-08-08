@@ -1,5 +1,6 @@
 import Profile from "./Profile";
 import CreatePost from './CreatePost/CreatePost';
+import MyPosts from "./MyPosts/MyPost";
 
 export default [
   {
@@ -9,6 +10,11 @@ export default [
   {
     path: "create-post",
     element: <CreatePost />,  
+    onlyAuthor: true,
+  },
+  {
+    path: "posts",
+    element: <MyPosts />,  
     onlyAuthor: true,
   },
 ];

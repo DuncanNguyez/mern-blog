@@ -3,6 +3,7 @@ import Post from "../models/post.model.js";
 import generateRandomString from "../utils/generateRandomString.js";
 import removeDiacritics from "../utils/removeDiacritics.js";
 import { postValidation } from "../utils/validation.js";
+import { errorHandler } from "../utils/error.js";
 
 const { find } = lodash;
 
@@ -35,4 +36,28 @@ const getPost = async (req, res, next) => {
   }
   return res.status(200).json(post);
 };
-export { createPost,getPost };
+const getPostsByUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (id !== req.user.userId) {
+      return next(errorHandler(403, "Access is not allowed"));
+    }
+    const { fields, skip, limit } = req.query;
+    let projection = {};
+    fields
+      .trim()
+      .split(",")
+      .forEach((field) => {
+        projection = { ...projection, [field]: 1 };
+      });
+    const posts = await Post.find({ authorId: id }, projection, {
+      skip,
+      limit,
+      sort: { createdAt: 1 },
+    });
+    return res.status(200).json(posts);
+  } catch (error) {
+    next(error);
+  }
+};
+export { createPost, getPost, getPostsByUser };

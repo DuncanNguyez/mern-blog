@@ -1,4 +1,5 @@
 import { Sidebar } from "flowbite-react";
+import { IoDocumentsSharp } from "react-icons/io5";
 import { HiDocumentAdd, HiUser, HiLogout } from "react-icons/hi";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
@@ -44,8 +45,19 @@ export default function DashboardSidebar() {
                 icon={HiDocumentAdd}
                 active={path === "create-post"}
                 as="div"
+                className="my-1"
               >
                 <span className="font-semibold">Create post</span>
+              </Sidebar.Item>
+            </Link>
+            <Link to={"/dashboard/posts"}>
+              <Sidebar.Item
+                icon={IoDocumentsSharp}
+                active={path === "posts"}
+                className="my-1"
+                as="div"
+              >
+                <span className="font-semibold">My posts</span>
               </Sidebar.Item>
             </Link>
           </Sidebar.ItemGroup>
