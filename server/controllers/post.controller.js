@@ -44,16 +44,18 @@ const getPostsByUser = async (req, res, next) => {
     }
     const { fields, skip, limit } = req.query;
     let projection = {};
-    fields
-      .trim()
-      .split(",")
-      .forEach((field) => {
-        projection = { ...projection, [field]: 1 };
-      });
+    if (fields?.length) {
+      fields
+        .trim()
+        .split(",")
+        .forEach((field) => {
+          projection = { ...projection, [field]: 1 };
+        });
+    }
     const posts = await Post.find({ authorId: id }, projection, {
       skip,
       limit,
-      sort: { createdAt: 1 },
+      sort: { createdAt: -1 },
     });
     return res.status(200).json(posts);
   } catch (error) {

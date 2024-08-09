@@ -24,12 +24,12 @@ export default function App() {
         <Route path="/sign-up" element={<SignUp />}></Route>
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<Dashboard />}>
-            {dashboardRoutes.map(({ path, element, onlyAdmin }) =>
-              !onlyAdmin ? (
+            {dashboardRoutes.map(({ path, element, onlyAuthor }) =>
+              !onlyAuthor ? (
                 <Route element={element} path={path} key={path} />
               ) : (
                 <Route element={<AuthorRoute />} key={path}>
-                  <Route element={element} path={path} />
+                  <Route element={element}  path={path} />
                 </Route>
               )
             )}
