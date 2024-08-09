@@ -7,16 +7,16 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 export default function MyPosts() {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser } = useSelector((state: any) => state.user);
   const id = currentUser._id;
   const limit = 20;
-  const [posts, setPosts] = useState();
+  const [posts, setPosts] = useState<Array<any>>();
   const [skip, setSkip] = useState(0);
-  const [error, setError] = useState();
+  const [error, setError] = useState<string>();
   const [showModal, setShowModal] = useState(false);
   const [deleteId, setDeleteId] = useState();
   const [isMore, setIsMore] = useState(true);
-  
+
   const getPosts = useCallback(async () => {
     try {
       const res = await fetch(
@@ -24,7 +24,6 @@ export default function MyPosts() {
       );
       if (res.ok) {
         const data = await res.json();
-        console.log(data);
         if (data.length < limit) {
           setIsMore(false);
         }
@@ -33,12 +32,12 @@ export default function MyPosts() {
         return;
       }
       setPosts([]);
-      if (res.headers.get("Content-type").includes("application/json")) {
+      if (res.headers.get("Content-type")?.includes("application/json")) {
         const data = await res.json();
         return setError(data.message);
       }
       setError(res.statusText);
-    } catch (error) {
+    } catch (error: any) {
       setError(error.message);
     }
   }, [id, limit, skip]);
@@ -60,14 +59,16 @@ export default function MyPosts() {
         method: "delete",
       });
       if (res.ok) {
-        return setPosts((prev) => prev.filter((post) => post._id !== deleteId));
+        return setPosts(
+          (prev) => prev || [].filter((post: any) => post._id !== deleteId)
+        );
       }
-      if (res.headers.get("Content-type").includes("application/json")) {
+      if (res.headers.get("Content-type")?.includes("application/json")) {
         const data = await res.json();
         console.log(data.message);
       }
       console.log(res.statusText);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error.message);
     }
   };
@@ -76,18 +77,18 @@ export default function MyPosts() {
       {posts?.length ? (
         <>
           <Table hoverable={true} className="shadow-md w-full">
-            <Table.Head>
-              <Table.HeadCell>Publication date</Table.HeadCell>
-              <Table.HeadCell>Post title</Table.HeadCell>
+            <Table.Head className="text-center">
+              <Table.HeadCell>Time</Table.HeadCell>
+              <Table.HeadCell>Title</Table.HeadCell>
               <Table.HeadCell>Edit</Table.HeadCell>
               <Table.HeadCell>Delete</Table.HeadCell>
             </Table.Head>
-            <Table.Body className="divide-y">
+            <Table.Body className="divide-y ">
               {posts.map(({ title, createdAt, path, _id }) => {
                 return (
                   <Table.Row
                     key={path}
-                    className="dark:border-gray-700 dark:bg-gray-800"
+                    className="dark:border-gray-700 dark:bg-gray-800 items-center"
                   >
                     <Table.Cell>{createdAt}</Table.Cell>
                     <Table.Cell>
@@ -103,13 +104,13 @@ export default function MyPosts() {
                         <CiEdit />
                       </Link>
                     </Table.Cell>
-                    <Table.Cell>
+                    <Table.Cell className="">
                       <MdDelete
                         onClick={() => {
                           setDeleteId(_id);
                           setShowModal(true);
                         }}
-                        className="cursor-pointer text-red-500"
+                        className="cursor-pointer text-red-500 size-6 "
                       />
                     </Table.Cell>
                   </Table.Row>

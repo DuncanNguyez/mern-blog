@@ -1,12 +1,13 @@
 import { Sidebar } from "flowbite-react";
 import { useState } from "react";
 
+type Toc = Array<Record<string, any>>;
 export default function TOC() {
-  const [toc, setToc] = useState([]);
+  const [toc, setToc] = useState<Toc>([]);
 
   const [hashPath, setHashPath] = useState(location.hash.replace("#", ""));
   setTimeout(() => {
-    let toc = [];
+    let toc: Toc = [];
     document
       .querySelectorAll(".tiptap .MuiTiptap-HeadingWithAnchorComponent-root")
       .forEach((item) => {

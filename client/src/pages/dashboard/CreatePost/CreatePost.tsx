@@ -11,14 +11,15 @@ import {
   updateDraftHashtags,
 } from "../../../redux/draft/draftSlice";
 import PostEditor from "./PostEditor";
-import { useEffect, useRef, useState } from "react";
+import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from "react";
+import { RootState } from "../../../redux/store";
 
 export default function CreatePost() {
   const { title, editorDoc, error, loading, hashtags } = useSelector(
-    (state) => state.draft
+    (state: RootState) => state.draft
   );
-  const { theme } = useSelector((state) => state.theme);
-  const editorRef = useRef();
+  const { theme } = useSelector((state: RootState) => state.theme);
+  const editorRef = useRef<any>();
   const dispatch = useDispatch();
   const [success, setSuccess] = useState(false);
   useEffect(() => {
@@ -28,28 +29,33 @@ export default function CreatePost() {
       }, 2000);
     }
   }, [success]);
-  const handleChangeTitle = (e) => {
+  const handleChangeTitle = (e: ChangeEvent<HTMLInputElement>) => {
     dispatch(updateDraftTitle(e.target.value));
   };
   const addHashtagsWithButton = () => {
-    const hashtagsInput = document.getElementById("hashtagsInput");
-    const tags = hashtagsInput.value.trim().split(" ");
+    const hashtagsInput = document.getElementById(
+      "hashtagsInput"
+    ) as HTMLInputElement;
+    const tags = hashtagsInput.value.trim().length > 0 ? hashtagsInput.value.trim().split(" ") : [];
     dispatch(updateDraftHashtags(Array.from(new Set([...hashtags, ...tags]))));
     hashtagsInput.value = "";
     hashtagsInput.focus();
   };
-  const addHashtagsWithInput = (e) => {
+  const addHashtagsWithInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.code === "Enter") {
-      const tags = e.target.value.trim().split(" ");
+      const el = e.target as HTMLInputElement;
+      const tags = el.value.trim().length > 0 ? el.value.trim().split(" ") : [];
+      console.log(tags);
       dispatch(
         updateDraftHashtags(Array.from(new Set([...hashtags, ...tags])))
       );
-      e.target.value = "";
-      e.target.focus();
+      el.value = "";
+      el.focus();
     }
   };
-  const handleDeleteHashtag = (e) => {
-    const tag = e.target.closest("span").textContent;
+  const handleDeleteHashtag = (e: MouseEvent<HTMLElement>) => {
+    const ele = e.target as HTMLElement;
+    const tag = ele.closest("span")?.textContent;
     const set = new Set(hashtags);
     set.delete(tag);
     dispatch(updateDraftHashtags(Array.from(set)));
@@ -62,7 +68,7 @@ export default function CreatePost() {
       },
     },
   });
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: MouseEvent) => {
     e.preventDefault();
     const payload = { title, editorDoc, hashtags };
     dispatch(startSubmitPost());
@@ -89,7 +95,7 @@ export default function CreatePost() {
         return dispatch(submitPostFailure(res.statusText));
       }
       dispatch(submitPostSuccess());
-    } catch (error) {
+    } catch (error: any) {
       console.log(error.message);
       dispatch(submitPostFailure(error.message));
     }
@@ -117,7 +123,7 @@ export default function CreatePost() {
             </Button>
           </div>
           <div className="px-1   whitespace-normal ">
-            {hashtags.map((tag) => {
+            {hashtags.map((tag: string) => {
               return (
                 <span
                   onClick={handleDeleteHashtag}

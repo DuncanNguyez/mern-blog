@@ -4,12 +4,13 @@ import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { extensions } from "../dashboard/CreatePost/editorExtension";
+import { extensions } from "../../tiptap/editorExtension";
 import TOC from "./TOC";
+import { Post as P } from "../../redux/draft/draftSlice";
 
 export default function Post() {
-  const { theme } = useSelector((state) => state.theme);
-  const [post, setPost] = useState();
+  const { theme } = useSelector((state: any) => state.theme);
+  const [post, setPost] = useState<P>();
   const { path } = useParams();
   const { title, hashtags, doc } = post || {};
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function Post() {
           const data = await res.json();
           setPost(data);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.log(error.message);
       }
     };
@@ -50,7 +51,7 @@ export default function Post() {
             </h1>
             <div className="text-right mb-10 flex justify-end ">
               <div className="max-w-lg">
-                {hashtags.map((tag) => {
+                {hashtags?.map((tag) => {
                   return (
                     <span
                       className=" text-sm bg-gray-500 group px-1.5 align-middle inline-block via-emerald-50 m-1 border rounded cursor-pointer relative"

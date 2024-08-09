@@ -7,13 +7,14 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { app } from "../../firebase";
 import { signOutSuccess } from "../../redux/user/userSlice";
+import { RootState } from "../../redux/store";
 
 export default function DashboardSidebar() {
   const location = useLocation();
   const path = location.pathname.replace(/.+\//, "");
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser } = useSelector((state: RootState) => state.user);
   const handleSignOut = async () => {
     try {
       getAuth(app).signOut();

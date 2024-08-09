@@ -1,5 +1,4 @@
-import PropsType from "prop-types";
-import { RichTextEditor } from "mui-tiptap";
+import { LinkBubbleMenu, RichTextEditor, TableBubbleMenu } from "mui-tiptap";
 import { useDispatch } from "react-redux";
 import { getAuth } from "firebase/auth";
 import {
@@ -9,35 +8,40 @@ import {
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
-
-import { extensions } from "./editorExtension";
+import { Content, JSONContent } from "@tiptap/core";
+import { extensions } from "../../../tiptap/editorExtension";
 import EditorMenuControls from "./EditorMenuControls";
 import { updateDraftEditor } from "../../../redux/draft/draftSlice";
 import { app } from "../../../firebase";
-
-export default function PostEditor({ editorRef, editorDoc }) {
+interface PostEditorProps {
+  editorRef: any;
+  editorDoc: Content;
+}
+const PostEditor: React.FC<PostEditorProps> = ({ editorRef, editorDoc }) => {
   const dispatch = useDispatch();
-  const findImageNode = (node, imagesData) => {
+  const findImageNode = (node: JSONContent, imagesData: Set<string>) => {
     if (!node) {
       return;
     }
-    if (node?.type?.name === "image") {
-      const { src } = node.attrs;
+    const type = node.type as any;
+    if (type.name === "image") {
+      const { src } = node.attrs || {};
       imagesData.add(src);
       return;
     }
-    const arr = Array.isArray(node.content)
-      ? node.content
-      : node.content.content;
-    arr.map((item) => findImageNode(item, imagesData));
+    const currentContent = node.content as any;
+    const arr = Array.isArray(currentContent)
+      ? currentContent
+      : currentContent.content;
+    arr.map((item: JSONContent) => findImageNode(item, imagesData));
   };
-  const deleteImage = async (transaction) => {
-    let setSrc = new Set();
-    let beforeSetSrc = new Set();
-    transaction.doc.forEach((node) => {
+  const deleteImage = async (transaction: any) => {
+    let setSrc = new Set<string>();
+    let beforeSetSrc = new Set<string>();
+    transaction.doc.forEach((node: JSONContent) => {
       findImageNode(node, setSrc);
     });
-    transaction.before.forEach((node) => {
+    transaction.before.forEach((node: JSONContent) => {
       findImageNode(node, beforeSetSrc);
     });
 
@@ -48,18 +52,18 @@ export default function PostEditor({ editorRef, editorDoc }) {
         try {
           const desertRef = ref(storage, src);
           deleteObject(desertRef);
-        } catch (error) {
+        } catch (error: any) {
           console.log(error.message);
         }
       }
     });
   };
-  const handleChangeEditor = ({ editor, transaction }) => {
+  const handleChangeEditor = ({ editor, transaction }: any) => {
     dispatch(updateDraftEditor(editor.getJSON()));
     deleteImage(transaction);
   };
 
-  const uploadImage = async (files) => {
+  const uploadImage = async (files: File[]) => {
     getAuth(app);
     const storage = getStorage(app);
     if (files) {
@@ -85,7 +89,7 @@ export default function PostEditor({ editorRef, editorDoc }) {
               );
             });
             return { src: url, alt: "" };
-          } catch (error) {
+          } catch (error: any) {
             alert("image has not been uploaded yet (note: image size < 2M)");
             console.log(error.message);
           }
@@ -101,10 +105,15 @@ export default function PostEditor({ editorRef, editorDoc }) {
       extensions={extensions}
       renderControls={() => <EditorMenuControls uploadImage={uploadImage} />}
       onUpdate={handleChangeEditor}
-    />
+    >
+      {() => (
+        <>
+          <LinkBubbleMenu />
+          <TableBubbleMenu />
+        </>
+      )}
+    </RichTextEditor>
   );
-}
-PostEditor.propTypes = {
-  editorRef: PropsType.object,
-  editorDoc: PropsType.object,
 };
+
+export default PostEditor;

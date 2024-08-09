@@ -1,5 +1,5 @@
 import { Alert, Button, Modal, Spinner, TextInput } from "flowbite-react";
-import { useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import {
@@ -24,31 +24,37 @@ import {
 } from "../../redux/user/userSlice";
 import { getAuth, updatePassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { User } from "./../../redux/user/userSlice";
+import { RootState } from "../../redux/store";
 
 export default function Profile() {
-  const { currentUser, error, loading } = useSelector((state) => state.user);
+  const { currentUser, error, loading } = useSelector(
+    (state: RootState) => state.user
+  );
 
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState(currentUser.imageUrl);
-  const [imageFileUploadProcess, setImageFileUploadProcess] = useState(null);
-  const [imageFileUploadError, setImageFileUploadError] = useState(null);
-  const [formData, setFormData] = useState(currentUser || {});
+  const [imageFileUploadProcess, setImageFileUploadProcess] = useState<
+    number | null
+  >(null);
+  const [imageFileUploadError, setImageFileUploadError] = useState<string>("");
+  const [formData, setFormData] = useState<User>(currentUser || {});
   const [updateUserSuccess, setUpdateUserSuccess] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const filePickerRef = useRef();
+  const filePickerRef = useRef<any>();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const handleImageChange = (e) => {
+  const handleImageChange = (e: any) => {
     const file = e.target.files[0];
     if (file) {
       setImageFile(file);
       setImageUrl(URL.createObjectURL(file));
     }
   };
-  const handleFormChange = (data) => {
+  const handleFormChange = (data: Record<string, any>) => {
     setFormData((prev) => ({ ...prev, ...data }));
   };
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     dispatch(updateStart());
     if (imageFileUploadProcess) {
@@ -57,8 +63,11 @@ export default function Profile() {
     try {
       const user = getAuth(app).currentUser;
       if (!formData.password) throw new Error("invalid password");
+      if (!user) {
+        throw new Error("User not found");
+      }
       await updatePassword(user, formData.password);
-    } catch (error) {
+    } catch (error: any) {
       return dispatch(updateFailure(error.message));
     }
     try {
@@ -75,7 +84,7 @@ export default function Profile() {
       }
       dispatch(updateSuccess(data));
       setUpdateUserSuccess(true);
-    } catch (error) {
+    } catch (error: any) {
       dispatch(updateFailure(error.message));
     }
   };
@@ -96,19 +105,19 @@ export default function Profile() {
       if (res.ok) {
         dispatch(deleteSuccess());
 
-        getAuth(app).currentUser.delete();
+        getAuth(app).currentUser?.delete();
         return;
       }
       const data = await res.json();
       dispatch(deleteFailure(data.message));
-    } catch (error) {
+    } catch (error: any) {
       dispatch(deleteFailure(error.message));
     } finally {
       const storage = getStorage(app);
       try {
         const desertRef = ref(storage, currentUser.imageUrl);
         deleteObject(desertRef);
-      } catch (error) {
+      } catch (error: any) {
         console.log(error.message);
       }
     }
@@ -133,7 +142,7 @@ export default function Profile() {
         (snapshot) => {
           const process =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setImageFileUploadProcess(process.toFixed(0));
+          setImageFileUploadProcess(Number.parseInt(process.toFixed(0)));
         },
         (error) => {
           console.log(error.message);
@@ -146,7 +155,7 @@ export default function Profile() {
           );
         },
         async () => {
-          setImageFileUploadError(null);
+          setImageFileUploadError("");
           setImageFileUploadProcess(null);
           setImageFile(null);
           const url = await getDownloadURL(uploadTask.snapshot.ref);

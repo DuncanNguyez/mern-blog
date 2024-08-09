@@ -1,7 +1,6 @@
 import { NodeViewContent, NodeViewWrapper } from "@tiptap/react";
-import PropTypes from "prop-types";
 
-export default function CodeBlockLowlightComponent(props) {
+export default function CodeBlockLowlightComponent(props: Record<string, any>) {
   const {
     node: {
       attrs: { language: defaultLanguage },
@@ -14,7 +13,6 @@ export default function CodeBlockLowlightComponent(props) {
   } = props;
   return (
     <NodeViewWrapper className="code-block pt-8">
-
       <select
         contentEditable={false}
         disabled={!editable}
@@ -29,25 +27,21 @@ export default function CodeBlockLowlightComponent(props) {
         >
           auto
         </option>
-        {extension.options.lowlight.listLanguages().map((lang, index) => (
-          <option
-            className="dark:text-gray-200 dark:bg-[rgb(23,30,48)]"
-            key={index}
-            value={lang}
-          >
-            {lang}
-          </option>
-        ))}
+        {extension.options.lowlight
+          .listLanguages()
+          .map((lang: string, index: number) => (
+            <option
+              className="dark:text-gray-200 dark:bg-[rgb(23,30,48)]"
+              key={index}
+              value={lang}
+            >
+              {lang}
+            </option>
+          ))}
       </select>
       <pre>
-        <NodeViewContent  as="code" />
+        <NodeViewContent as="code" />
       </pre>
     </NodeViewWrapper>
   );
 }
-CodeBlockLowlightComponent.propTypes = {
-  node: PropTypes.object.isRequired,
-  updateAttributes: PropTypes.func.isRequired,
-  extension: PropTypes.object.isRequired,
-  editor: PropTypes.object,
-};

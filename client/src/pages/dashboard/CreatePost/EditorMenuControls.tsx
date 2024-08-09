@@ -33,7 +33,11 @@ import {
   isTouchDevice,
 } from "mui-tiptap";
 
-export default function EditorMenuControls({ uploadImage }) {
+export default function EditorMenuControls({
+  uploadImage,
+}: {
+  uploadImage: any;
+}) {
   const theme = useTheme();
   return (
     <MenuControlsContainer>

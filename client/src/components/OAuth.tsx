@@ -1,8 +1,8 @@
 import { Button } from "flowbite-react";
 import { AiFillGoogleCircle } from "react-icons/ai";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { app } from "../firebase";
-import { signInFailure, signInSuccess } from "../redux/user/userSlice";
+import { app } from "../firebase.ts";
+import { signInFailure, signInSuccess } from "../redux/user/userSlice.ts";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
@@ -36,7 +36,7 @@ export default function OAuth() {
       }
       dispatch(signInSuccess(data));
       return navigate("/home");
-    } catch (error) {
+    } catch (error: any) {
       dispatch(signInFailure(error.message));
     }
   };

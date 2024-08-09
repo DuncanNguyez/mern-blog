@@ -1,12 +1,12 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import About from "./pages/About";
-import Home from "./pages/Home";
-import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
-import Projects from "./pages/Projects";
-import Header from "./components/Header";
-import FooterCom from "./components/Footer";
-import PrivateRoute from "./components/PrivateRoute";
+import About from "./pages/About.jsx";
+import Home from "./pages/Home.jsx";
+import SignIn from "./pages/SignIn.jsx";
+import SignUp from "./pages/SignUp.jsx";
+import Projects from "./pages/Projects.jsx";
+import Header from "./components/Header.jsx";
+import FooterCom from "./components/Footer.jsx";
+import PrivateRoute from "./components/PrivateRoute.jsx";
 
 import dashboardRoutes from "./pages/dashboard/dashboardRoutes.jsx";
 import Dashboard from "./pages/dashboard/Dashboard.jsx";

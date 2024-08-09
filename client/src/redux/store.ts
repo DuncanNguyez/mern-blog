@@ -15,7 +15,7 @@ const rootReducer = combineReducers({
 });
 
 const transform = createTransform(
-  (inboundState) => inboundState,
+  (inboundState: any) => inboundState,
   (outboundState, key) => {
     if (key === "user" || key === "draft") {
       outboundState.error = null;
@@ -31,7 +31,7 @@ const persistedReducer = persistReducer(
     version: 1,
     transforms: [transform],
   },
-  rootReducer
+  rootReducer as any
 );
 
 export const store = configureStore({
@@ -41,3 +41,9 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
+// Get the type of our store variable
+export type AppStore = typeof store;
+// Infer the `RootState` and `AppDispatch` types from the store itself
+export type RootState = ReturnType<AppStore["getState"]>;
+// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
+export type AppDispatch = AppStore["dispatch"];

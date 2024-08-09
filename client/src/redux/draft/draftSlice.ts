@@ -1,11 +1,28 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { Content } from "@tiptap/core";
 
-const initialState = {
+export interface Post{
+  _id:String,
+  path:String,
+  title: String;
+  hashtags: Array<string>;
+  loading: Boolean;
+  doc:Content
+}
+interface DraftState {
+  title: String;
+  hashtags: Array<String>;
+  loading: Boolean;
+  error: String;
+  editorDoc: Content;
+}
+
+const initialState: DraftState = {
   title: "",
   hashtags: [],
   editorDoc: null,
   loading: false,
-  error: null,
+  error: "",
 };
 
 const draftSlice = createSlice({
@@ -23,7 +40,7 @@ const draftSlice = createSlice({
     },
     startSubmitPost: (state) => {
       state.loading = true;
-      state.error = null;
+      state.error = "";
     },
     submitPostFailure: (state, action) => {
       state.error = action.payload;
@@ -31,7 +48,7 @@ const draftSlice = createSlice({
     },
     submitPostSuccess: (state) => {
       state.loading = false;
-      state.error = null;
+      state.error = "";
       state.title = "";
       state.editorDoc = null;
       state.hashtags = [];

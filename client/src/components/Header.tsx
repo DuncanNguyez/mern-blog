@@ -3,17 +3,17 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AiOutlineSearch } from "react-icons/ai";
 import { FaMoon, FaSun } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleTheme } from "../redux/theme/themSlice";
-import { app } from "../firebase";
+import { toggleTheme } from "../redux/theme/themSlice.ts";
+import { app } from "../firebase.ts";
 import { getAuth } from "firebase/auth";
-import { signOutSuccess } from "../redux/user/userSlice";
+import { signOutSuccess } from "../redux/user/userSlice.ts";
 
 export default function Header() {
   const path = useLocation().pathname;
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { currentUser } = useSelector((state) => state.user);
-  const { theme } = useSelector((state) => state.theme);
+  const { currentUser } = useSelector((state: any) => state.user);
+  const { theme } = useSelector((state: any) => state.theme);
   const handleSignOut = async () => {
     try {
       getAuth(app).signOut();

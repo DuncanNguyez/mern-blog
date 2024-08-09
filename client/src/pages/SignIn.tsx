@@ -1,72 +1,60 @@
-import {
-  Alert,
-  Button,
-  Checkbox,
-  Label,
-  Spinner,
-  TextInput,
-} from "flowbite-react";
-import { useEffect, useState } from "react";
+import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import {
   signInFailure,
   signInStart,
   signInSuccess,
-} from "../redux/user/userSlice";
-import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
-import { app } from "../firebase";
+} from "../redux/user/userSlice.ts";
+import OAuth from "../components/OAuth";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { app } from "../firebase.ts";
 
-export default function SignUp() {
+export default function SignIn() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({});
-  const { currentUser, error, loading } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+
+  const [formData, setFormData] = useState<Record<string, any>>({});
+  const {
+    currentUser,
+    loading,
+    error: errorMessage,
+  } = useSelector((state: any) => state.user);
+
   useEffect(() => {
     if (currentUser) {
       navigate("/home");
     }
   });
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.id]:
-        e.target.type === "checkbox" ? e.target.checked : e.target.value.trim(),
-    }));
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value.trim() }));
   };
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    dispatch(signInStart());
-    const { username, email, password } = formData;
-    if ((!username, !email, !password)) {
+    const { username, password } = formData;
+    if (!username || !password) {
       return dispatch(signInFailure("Please fill out all fields "));
     }
-    const auth = getAuth(app);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      return dispatch(signInFailure(error.message));
-    }
-
-    try {
-      const res = await fetch("/api/v1/auth/sign-up", {
+      dispatch(signInStart());
+      const res = await fetch("/api/v1/auth/sign-in", {
         method: "post",
         headers: {
           "Content-type": "application/json",
         },
         body: JSON.stringify(formData),
       });
-
       const data = await res.json();
-      if (res.ok) {
-        dispatch(signInSuccess(data));
-        return navigate("/home");
+      if (data.success === false) {
+        return dispatch(signInFailure(data.message));
       }
-      return dispatch(signInFailure(data.message));
-    } catch (error) {
-      auth.currentUser.delete();
-      return dispatch(signInFailure(error.message));
+      dispatch(signInSuccess(data));
+      await signInWithEmailAndPassword(getAuth(app), data.email, password);
+      navigate("/home");
+    } catch (error: any) {
+      dispatch(signInFailure(error.message));
     }
   };
   return (
@@ -83,7 +71,7 @@ export default function SignUp() {
             Blog
           </Link>
           <p className="text-sm mt-5">
-            This is a demo project. You can sign up with your email and password
+            This is a demo project. You can sign in with your email and password
             of with Google.
           </p>
         </div>
@@ -103,31 +91,14 @@ export default function SignUp() {
               />
             </div>
             <div>
-              <Label value="Your email" />
-              <TextInput
-                onChange={handleChange}
-                type="email"
-                placeholder="Name@company.com"
-                id="email"
-              />
-            </div>
-            <div>
               <Label value="Your password" />
               <TextInput
                 onChange={handleChange}
                 type="password"
-                placeholder="Password"
+                placeholder="**********"
                 id="password"
                 autoComplete="true"
               />
-            </div>
-            <div>
-              <Checkbox
-                className="mr-3"
-                onChange={handleChange}
-                id="isAuthor"
-              />
-              <Label value="Is Author" />
             </div>
             <Button
               type="submit"
@@ -140,21 +111,22 @@ export default function SignUp() {
                   <span className="pl-3">Loading...</span>
                 </>
               ) : (
-                "Sign Up"
+                "Sign In"
               )}
             </Button>
+            <OAuth></OAuth>
           </form>
-          <div className="flex gap-2 text-sm mt-5">
-            <span>Have an account?</span>
-            <Link to="/sign-in" className="text-blue-500">
-              Sign in
-            </Link>
-          </div>
-          {error && (
+          {errorMessage && (
             <Alert className="mt-5" color="failure">
-              {error}
+              {errorMessage}
             </Alert>
           )}
+          <div className="flex gap-2 text-sm mt-5">
+            <span>Don&apos;t have an account?</span>
+            <Link to="/sign-up" className="text-blue-500">
+              Sign up
+            </Link>
+          </div>
         </div>
       </div>
     </div>
