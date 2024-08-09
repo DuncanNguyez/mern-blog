@@ -12,6 +12,7 @@ import dashboardRoutes from "./pages/dashboard/dashboardRoutes.jsx";
 import Dashboard from "./pages/dashboard/Dashboard.jsx";
 import AuthorRoute from "./components/AuthorRoute.jsx";
 import Post from "./pages/Post/Post.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
 
 export default function App() {
   return (
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/about" element={<About />}></Route>
         <Route path="*" element={<h1>notfound</h1>}></Route>
       </Routes>
+      <ScrollToTop/>
       <FooterCom></FooterCom>
     </BrowserRouter>
   );
