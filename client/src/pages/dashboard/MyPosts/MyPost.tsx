@@ -3,12 +3,9 @@ import { MdDelete } from "react-icons/md";
 import { CiEdit } from "react-icons/ci";
 import { Alert, Button, Modal, Table } from "flowbite-react";
 import { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 export default function MyPosts() {
-  const { currentUser } = useSelector((state: any) => state.user);
-  const id = currentUser._id;
   const limit = 20;
   const [posts, setPosts] = useState<Array<any>>();
   const [skip, setSkip] = useState(0);
@@ -20,7 +17,7 @@ export default function MyPosts() {
   const getPosts = useCallback(async () => {
     try {
       const res = await fetch(
-        `/api/v1/posts/user/${id}?fields=title,path,createdAt&limit=${limit}&skip=${skip}`
+        `/api/v1/posts/user?fields=title,path,createdAt&limit=${limit}&skip=${skip}`
       );
       if (res.ok) {
         const data = await res.json();
@@ -31,7 +28,6 @@ export default function MyPosts() {
         setSkip((prevSkip) => prevSkip + limit);
         return;
       }
-      setPosts([]);
       if (res.headers.get("Content-type")?.includes("application/json")) {
         const data = await res.json();
         return setError(data.message);
@@ -40,7 +36,7 @@ export default function MyPosts() {
     } catch (error: any) {
       setError(error.message);
     }
-  }, [id, limit, skip]);
+  }, [limit, skip]);
 
   useEffect(() => {
     if (!posts && !error) {
@@ -55,13 +51,15 @@ export default function MyPosts() {
   const handleDeletePost = async () => {
     setShowModal(false);
     try {
-      const res = await fetch(`/api/v1/posts/user/${id}/${deleteId}`, {
+      const res = await fetch(`/api/v1/posts/user/${deleteId}`, {
         method: "delete",
       });
       if (res.ok) {
-        return setPosts(
-          (prev) => prev || [].filter((post: any) => post._id !== deleteId)
-        );
+        const newPosts = posts?.filter((post: any) => {
+          return post._id !== deleteId;
+        });
+        setPosts(newPosts);
+        return;
       }
       if (res.headers.get("Content-type")?.includes("application/json")) {
         const data = await res.json();

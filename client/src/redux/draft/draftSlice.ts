@@ -2,18 +2,17 @@ import { createSlice } from "@reduxjs/toolkit";
 import { Content } from "@tiptap/core";
 
 export interface Post{
-  _id:String,
-  path:String,
-  title: String;
+  _id?:string,
+  path:string,
+  title: string;
   hashtags: Array<string>;
-  loading: Boolean;
-  doc:Content
+  doc?:Content
 }
-interface DraftState {
-  title: String;
-  hashtags: Array<String>;
-  loading: Boolean;
-  error: String;
+export interface DraftState {
+  title: string;
+  hashtags: Array<string>;
+  loading: boolean;
+  error: string;
   editorDoc: Content;
 }
 

@@ -1,5 +1,4 @@
 import { useTheme } from "@mui/material";
-import PropTypes from "prop-types";
 import {
   MenuButtonAddTable,
   MenuButtonBlockquote,
@@ -32,12 +31,14 @@ import {
   MenuSelectTextAlign,
   isTouchDevice,
 } from "mui-tiptap";
+import { ReactNode } from "react";
+import MenuButtonClear from "./MenuButtonClear";
 
-export default function EditorMenuControls({
-  uploadImage,
-}: {
+type Props = {
   uploadImage: any;
-}) {
+  child?: ReactNode;
+};
+export default function EditorMenuControls({ uploadImage, child }: Props) {
   const theme = useTheme();
   return (
     <MenuControlsContainer>
@@ -134,9 +135,16 @@ export default function EditorMenuControls({
 
       <MenuButtonUndo />
       <MenuButtonRedo />
+      
+      <MenuDivider />
+      <MenuButtonClear/>
+
+      {child && (
+        <>
+          <MenuDivider />
+          {child}
+        </>
+      )}
     </MenuControlsContainer>
   );
 }
-EditorMenuControls.propTypes = {
-  uploadImage: PropTypes.func.isRequired,
-};

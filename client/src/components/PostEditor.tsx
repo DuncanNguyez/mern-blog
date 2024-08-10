@@ -1,5 +1,4 @@
 import { LinkBubbleMenu, RichTextEditor, TableBubbleMenu } from "mui-tiptap";
-import { useDispatch } from "react-redux";
 import { getAuth } from "firebase/auth";
 import {
   deleteObject,
@@ -9,16 +8,26 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { Content, JSONContent } from "@tiptap/core";
-import { extensions } from "../../../tiptap/editorExtension";
+import { extensions } from "../tiptap/editorExtension";
 import EditorMenuControls from "./EditorMenuControls";
-import { updateDraftEditor } from "../../../redux/draft/draftSlice";
-import { app } from "../../../firebase";
+import { app } from "../firebase";
+import { ReactNode } from "react";
 interface PostEditorProps {
   editorRef: any;
   editorDoc: Content;
+  onUpdate: Function;
+  dependenciesEnable?: boolean;
+  menuButtons?: ReactNode;
+  editable?: boolean;
 }
-const PostEditor: React.FC<PostEditorProps> = ({ editorRef, editorDoc }) => {
-  const dispatch = useDispatch();
+const PostEditor: React.FC<PostEditorProps> = ({
+  editorRef,
+  editorDoc,
+  onUpdate,
+  dependenciesEnable = false,
+  menuButtons,
+  editable = true,
+}) => {
   const findImageNode = (node: JSONContent, imagesData: Set<string>) => {
     if (!node) {
       return;
@@ -59,7 +68,7 @@ const PostEditor: React.FC<PostEditorProps> = ({ editorRef, editorDoc }) => {
     });
   };
   const handleChangeEditor = ({ editor, transaction }: any) => {
-    dispatch(updateDraftEditor(editor.getJSON()));
+    onUpdate(editor);
     deleteImage(transaction);
   };
 
@@ -97,22 +106,29 @@ const PostEditor: React.FC<PostEditorProps> = ({ editorRef, editorDoc }) => {
       );
     }
   };
+
   return (
-    <RichTextEditor
-      ref={editorRef}
-      className="min-h-96"
-      content={editorDoc}
-      extensions={extensions}
-      renderControls={() => <EditorMenuControls uploadImage={uploadImage} />}
-      onUpdate={handleChangeEditor}
-    >
-      {() => (
-        <>
-          <LinkBubbleMenu />
-          <TableBubbleMenu />
-        </>
-      )}
-    </RichTextEditor>
+    <>
+      <RichTextEditor
+        editable={editable}
+        ref={editorRef}
+        className="min-h-96"
+        content={editorDoc}
+        editorDependencies={dependenciesEnable ? [editorDoc] : []}
+        extensions={extensions}
+        renderControls={() => (
+          <EditorMenuControls child={menuButtons} uploadImage={uploadImage} />
+        )}
+        onUpdate={handleChangeEditor}
+      >
+        {() => (
+          <>
+            <LinkBubbleMenu />
+            <TableBubbleMenu />
+          </>
+        )}
+      </RichTextEditor>
+    </>
   );
 };
 

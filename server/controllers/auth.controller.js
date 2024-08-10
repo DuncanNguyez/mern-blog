@@ -108,6 +108,7 @@ const protect = async (req, res, next) => {
 };
 
 const authorProtect = async (req, res, next) => {
+  console.log(req.user)
   if (req.user.isAuthor) {
     return next();
   }

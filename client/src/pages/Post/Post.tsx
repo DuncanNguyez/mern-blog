@@ -17,7 +17,6 @@ export default function Post() {
     const getPost = async () => {
       try {
         const res = await fetch(`/api/v1/posts/${path}`);
-        console.log(res);
         if (res.ok) {
           const data = await res.json();
           setPost(data);
@@ -26,10 +25,8 @@ export default function Post() {
         console.log(error.message);
       }
     };
-    if (!post) {
-      getPost();
-    }
-  });
+    getPost();
+  }, [path]);
 
   const mTheme = createTheme({
     palette: {
@@ -43,7 +40,7 @@ export default function Post() {
     <ThemeProvider theme={mTheme}>
       <div className="mx-auto flex flex-row justify-between  gap-4 relative ">
         {!post ? (
-          <h1>POST NOT FOUND</h1>
+          <h1 className="m-auto">POST NOT FOUND</h1>
         ) : (
           <div className="p-10">
             <h1 id="title" className="font-bold  text-4xl m-2">

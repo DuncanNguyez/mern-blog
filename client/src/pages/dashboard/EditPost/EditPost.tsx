@@ -4,25 +4,70 @@ import { createTheme, ThemeProvider } from "@mui/material";
 import { Alert, Button, Spinner, TextInput } from "flowbite-react";
 
 import {
-  startSubmitPost,
-  submitPostFailure,
-  submitPostSuccess,
-  updateDraftTitle,
-  updateDraftHashtags,
-  updateDraftEditor,
-} from "../../../redux/draft/draftSlice";
-import PostEditor from "../../../components/PostEditor";
-import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from "react";
+  ChangeEvent,
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { RootState } from "../../../redux/store";
+import PostEditor from "../../../components/PostEditor";
+import { useParams } from "react-router-dom";
+import { Post } from "../../../redux/draft/draftSlice";
+import {
+  fetchPostFailure,
+  fetchPostSuccess,
+  handleRevisingStart,
+  updatePostFailure,
+  updatePostSuccess,
+  updateRevisingPost,
+} from "../../../redux/revising/revisingSlice";
+import MenuButtonReset from "../../../components/MenuButtonReset";
 
-export default function CreatePost() {
-  const { title, editorDoc, error, loading, hashtags } = useSelector(
-    (state: RootState) => state.draft
-  );
-  const { theme } = useSelector((state: RootState) => state.theme);
-  const editorRef = useRef<any>();
+export default function EditPost() {
   const dispatch = useDispatch();
+  const { theme } = useSelector((state: RootState) => state.theme);
   const [success, setSuccess] = useState(false);
+  const [rerender, setRerender] = useState(false);
+  const editorRef = useRef<any>();
+  const { loading, error, posts } = useSelector(
+    (state: RootState) => state.revising
+  );
+  const { path } = useParams();
+  if (!path) {
+    return;
+  }
+  const { title, doc, hashtags, _id }: Post = posts[path] || {};
+
+  const getPost = useCallback(async () => {
+    // we need to rerender editor tiptap,
+    // by default the editor will not do this without dependencies
+    setRerender(true);
+    dispatch(handleRevisingStart());
+    try {
+      const res = await fetch(`/api/v1/posts/${path}`);
+      if (res.ok) {
+        const data = await res.json();
+        return dispatch(fetchPostSuccess(data));
+      }
+      if (res.headers.get("Content-type")?.includes("application/json")) {
+        const data = await res.json();
+
+        return dispatch(fetchPostFailure(data.message));
+      }
+      dispatch(fetchPostFailure(res.statusText));
+    } catch (error: any) {
+      dispatch(fetchPostFailure(error.message));
+    }
+  }, [path]);
+
+  useEffect(() => {
+    if (!doc) {
+      getPost();
+    }
+  }, [doc]);
+
   useEffect(() => {
     if (success) {
       setTimeout(() => {
@@ -30,8 +75,20 @@ export default function CreatePost() {
       }, 2000);
     }
   }, [success]);
+
+  // disable rerender when use ui
+  useEffect(() => {
+    if (rerender) {
+      setTimeout(() => {
+        setRerender(false);
+      }, 1000);
+    }
+  }, [rerender]);
+  const handleReset = () => {
+    getPost();
+  };
   const handleChangeTitle = (e: ChangeEvent<HTMLInputElement>) => {
-    dispatch(updateDraftTitle(e.target.value));
+    dispatch(updateRevisingPost({ title: e.target.value, path } as Post));
   };
   const addHashtagsWithButton = () => {
     const hashtagsInput = document.getElementById(
@@ -41,7 +98,9 @@ export default function CreatePost() {
       hashtagsInput.value.trim().length > 0
         ? hashtagsInput.value.trim().split(" ")
         : [];
-    dispatch(updateDraftHashtags(Array.from(new Set([...hashtags, ...tags]))));
+    const newHashtags = Array.from(new Set([...hashtags, ...tags]));
+    dispatch(updateRevisingPost({ hashtags: newHashtags, path } as Post));
+
     hashtagsInput.value = "";
     hashtagsInput.focus();
   };
@@ -49,10 +108,9 @@ export default function CreatePost() {
     if (e.code === "Enter") {
       const el = e.target as HTMLInputElement;
       const tags = el.value.trim().length > 0 ? el.value.trim().split(" ") : [];
-      console.log(tags);
-      dispatch(
-        updateDraftHashtags(Array.from(new Set([...hashtags, ...tags])))
-      );
+      const newHashtags = Array.from(new Set([...hashtags, ...tags]));
+      dispatch(updateRevisingPost({ hashtags: newHashtags, path } as Post));
+
       el.value = "";
       el.focus();
     }
@@ -61,8 +119,8 @@ export default function CreatePost() {
     const ele = e.target as HTMLElement;
     const tag = ele.closest("span")?.textContent;
     const set = new Set(hashtags);
-    set.delete(tag);
-    dispatch(updateDraftHashtags(Array.from(set)));
+    set.delete(tag || "");
+    dispatch(updateRevisingPost({ hashtags: Array.from(set), path } as Post));
   };
   const mTheme = createTheme({
     palette: {
@@ -74,17 +132,17 @@ export default function CreatePost() {
   });
   const handleSubmit = async (e: MouseEvent) => {
     e.preventDefault();
-    const payload = { title, editorDoc, hashtags };
-    dispatch(startSubmitPost());
+    const payload = { title, editorDoc: doc, hashtags };
+    dispatch(handleRevisingStart());
     if (!title || editorRef.current.editor.isEmpty) {
-      return dispatch(submitPostFailure("Invalid title or content"));
+      return dispatch(updatePostFailure("Invalid title or content"));
     }
     if (hashtags.length === 0) {
-      return dispatch(submitPostFailure("Must contain at least one hashtag"));
+      return dispatch(updatePostFailure("Must contain at least one hashtag"));
     }
     try {
-      const res = await fetch("/api/v1/posts/create", {
-        method: "post",
+      const res = await fetch(`/api/v1/posts/edit/${_id}`, {
+        method: "put",
         headers: {
           "Content-type": "application/json",
         },
@@ -94,15 +152,14 @@ export default function CreatePost() {
         const contentType = res.headers.get("Content-type");
         if (contentType === "application/json; charset=utf-8") {
           const data = await res.json();
-          return dispatch(submitPostFailure(data.message));
+          return dispatch(updatePostFailure(data.message));
         }
-        return dispatch(submitPostFailure(res.statusText));
+        return dispatch(updatePostFailure(res.statusText));
       }
-      setSuccess(true);
-      dispatch(submitPostSuccess());
+      dispatch(updatePostSuccess(path));
     } catch (error: any) {
       console.log(error.message);
-      dispatch(submitPostFailure(error.message));
+      dispatch(updatePostFailure(error.message));
     }
   };
 
@@ -128,7 +185,7 @@ export default function CreatePost() {
             </Button>
           </div>
           <div className="px-1   whitespace-normal ">
-            {hashtags.map((tag: string) => {
+            {hashtags?.map((tag: string) => {
               return (
                 <span
                   onClick={handleDeleteHashtag}
@@ -141,12 +198,18 @@ export default function CreatePost() {
               );
             })}
           </div>
+
           <PostEditor
+            menuButtons={<MenuButtonReset handleClick={handleReset} />}
+            editorDoc={doc || null}
             onUpdate={(editor: any) => {
-              dispatch(updateDraftEditor(editor.getJSON()));
+              dispatch(
+                updateRevisingPost({ doc: editor.getJSON(), path } as Post)
+              );
             }}
-            editorDoc={editorDoc}
+            dependenciesEnable={rerender}
             editorRef={editorRef}
+            editable={!rerender}
           />
           <Button
             type="button"
