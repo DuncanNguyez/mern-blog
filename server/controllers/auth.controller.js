@@ -83,7 +83,7 @@ const googleAuth = async (req, res, next) => {
     imageUrl,
   });
   const token = jwt.sign(
-    { userId: newUser._id, isAuthor: user.isAuthor },
+    { userId: newUser._id, isAuthor: newUser.isAuthor },
     process.env.JWT_SECRET
   );
   const { password: pw, ...rest } = newUser._doc;
