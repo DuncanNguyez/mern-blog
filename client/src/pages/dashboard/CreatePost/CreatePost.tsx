@@ -39,7 +39,7 @@ export default function CreatePost() {
     ) as HTMLInputElement;
     const tags =
       hashtagsInput.value.trim().length > 0
-        ? hashtagsInput.value.trim().split(" ")
+        ? hashtagsInput.value.trim().toLowerCase().split(" ")
         : [];
     dispatch(updateDraftHashtags(Array.from(new Set([...hashtags, ...tags]))));
     hashtagsInput.value = "";
@@ -48,7 +48,10 @@ export default function CreatePost() {
   const addHashtagsWithInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.code === "Enter") {
       const el = e.target as HTMLInputElement;
-      const tags = el.value.trim().length > 0 ? el.value.trim().split(" ") : [];
+      const tags =
+        el.value.trim().length > 0
+          ? el.value.trim().toLowerCase().split(" ")
+          : [];
       console.log(tags);
       dispatch(
         updateDraftHashtags(Array.from(new Set([...hashtags, ...tags])))

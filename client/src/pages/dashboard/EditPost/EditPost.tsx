@@ -96,7 +96,7 @@ export default function EditPost() {
     ) as HTMLInputElement;
     const tags =
       hashtagsInput.value.trim().length > 0
-        ? hashtagsInput.value.trim().split(" ")
+        ? hashtagsInput.value.trim().toLowerCase().split(" ")
         : [];
     const newHashtags = Array.from(new Set([...hashtags, ...tags]));
     dispatch(updateRevisingPost({ hashtags: newHashtags, path } as Post));
@@ -107,7 +107,7 @@ export default function EditPost() {
   const addHashtagsWithInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.code === "Enter") {
       const el = e.target as HTMLInputElement;
-      const tags = el.value.trim().length > 0 ? el.value.trim().split(" ") : [];
+      const tags = el.value.trim().length > 0 ? el.value.trim().toLowerCase().split(" ") : [];
       const newHashtags = Array.from(new Set([...hashtags, ...tags]));
       dispatch(updateRevisingPost({ hashtags: newHashtags, path } as Post));
 
