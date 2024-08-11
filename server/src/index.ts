@@ -1,13 +1,13 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import connectDb from "./utils/connectDb.js";
-import userRouter from "./routes/user.route.js";
-import authRouter from "./routes/auth.route.js";
-import postRouter from "./routes/post.route.js";
+import connectDb from "./utils/connectDb";
+import userRouter from "./routes/user.route";
+import authRouter from "./routes/auth.route";
+import postRouter from "./routes/post.route";
 
 dotenv.config();
-await connectDb();
+connectDb();
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -20,7 +20,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/posts", postRouter);
 
-app.use((err, req, res, next) => {
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.debug(err);
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal server error!";

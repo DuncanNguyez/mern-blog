@@ -1,5 +1,13 @@
 import { model, Schema } from "mongoose";
-const postSchema = new Schema(
+export interface IPost {
+  title: string;
+  path: string;
+  doc: any;
+  authorId: string;
+  hashtags: Array<string>;
+  [key: string]: any;
+}
+const postSchema = new Schema<IPost>(
   {
     title: { type: String, required: true },
     path: { type: String, required: true, unique: true },

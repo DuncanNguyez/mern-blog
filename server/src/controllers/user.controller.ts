@@ -1,15 +1,17 @@
+import { NextFunction, Response, Request } from "express";
 import lodash from "lodash";
-
-import User from "../models/user.model.js";
-import { errorHandler } from "../utils/error.js";
-import { userValidation } from "../utils/validation.js";
 import bcryptjs from "bcryptjs";
 
+import User from "../models/user.model";
+import { errorHandler } from "../utils/error";
+import { userValidation } from "../utils/validation";
+import { CusRequest } from "./auth.controller";
+
 const { find } = lodash;
-const updateUser = async (req, res, next) => {
+const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
-    const user = req.user;
+    const user = (req as CusRequest).user;
     if (userId !== user.userId) {
       return next(errorHandler(403, "Access is not allowed"));
     }
@@ -26,6 +28,9 @@ const updateUser = async (req, res, next) => {
       },
       { new: true }
     ).lean();
+    if (!userUpdated) {
+      return res.status(404).json({ message: "User not found" });
+    }
     const { password, ...rest } = userUpdated;
     return res.status(200).json(rest);
   } catch (error) {
@@ -33,10 +38,10 @@ const updateUser = async (req, res, next) => {
     next(error);
   }
 };
-const deleteUser = async (req, res, next) => {
+const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.params;
-    if (userId != req.user.userId) {
+    if (userId != (req as CusRequest).user.userId) {
       return next(errorHandler(403, "Access is not allowed"));
     }
     await User.findByIdAndDelete(userId);

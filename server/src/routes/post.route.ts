@@ -1,5 +1,5 @@
 import express from "express";
-import { authorProtect, protect } from "../controllers/auth.controller.js";
+import { authorProtect, protect } from "../controllers/auth.controller";
 import {
   createPostByUser,
   deletePostByUser,
@@ -7,7 +7,7 @@ import {
   getPost,
   getPostByUser,
   getPostsByUser,
-} from "../controllers/post.controller.js";
+} from "../controllers/post.controller";
 const router = express.Router();
 
 router.post("/create", protect, authorProtect, createPostByUser);

@@ -1,17 +1,24 @@
 import lodash from "lodash";
-import Post from "../models/post.model.js";
-import generateRandomString from "../utils/generateRandomString.js";
-import removeDiacritics from "../utils/removeDiacritics.js";
-import { postValidation } from "../utils/validation.js";
-import { errorHandler } from "../utils/error.js";
+import { NextFunction, Request, Response } from "express";
+
+import Post, { IPost } from "../models/post.model";
+import generateRandomString from "../utils/generateRandomString";
+import removeDiacritics from "../utils/removeDiacritics";
+import { postValidation } from "../utils/validation";
+import { CusRequest } from "./auth.controller";
+import { FilterQuery } from "mongoose";
 
 const { find } = lodash;
 
-const createPostByUser = async (req, res, next) => {
+const createPostByUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { title, editorDoc: doc, hashtags } = req.body;
-  const authorId = req.user.userId;
+  const authorId = (req as CusRequest).user.userId;
   const path =
-    removeDiacritics(title).trim().toLowerCase().replaceAll(" ", "-") +
+    removeDiacritics(title).trim().toLowerCase().replace(/ /g, "-") +
     "-" +
     generateRandomString(10).toLowerCase();
   const validated = postValidation({
@@ -28,7 +35,7 @@ const createPostByUser = async (req, res, next) => {
     next(error);
   }
 };
-const getPost = async (req, res, next) => {
+const getPost = async (req: Request, res: Response, next: NextFunction) => {
   const { path } = req.params;
   const post = await Post.findOne({ path }).lean();
   if (!post) {
@@ -36,10 +43,15 @@ const getPost = async (req, res, next) => {
   }
   return res.status(200).json(post);
 };
-const getPostsByUser = async (req, res, next) => {
+const getPostsByUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const id = req.user.userId;
-    const { fields, skip, limit } = req.query;
+    const id = (req as CusRequest).user.userId;
+    const { skip, limit } = req.query;
+    const fields = req.query.fields as string;
     let projection = {};
     if (fields?.length) {
       fields
@@ -53,17 +65,21 @@ const getPostsByUser = async (req, res, next) => {
       skip,
       limit,
       sort: { createdAt: -1 },
-    });
+    } as FilterQuery<IPost>);
     return res.status(200).json(posts);
   } catch (error) {
     next(error);
   }
 };
-const getPostByUser = async (req, res, next) => {
+const getPostByUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { path } = req.params;
-    const { userId } = req.user;
-    const { fields } = req.query;
+    const { userId } = (req as CusRequest).user;
+    const fields = req.query.fields as string;
     let projection = {};
     if (fields?.length) {
       fields
@@ -85,12 +101,16 @@ const getPostByUser = async (req, res, next) => {
     next(error);
   }
 };
-const deletePostByUser = async (req, res, next) => {
+const deletePostByUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { id } = req.params;
     const post = await Post.findOneAndDelete({
       _id: id,
-      authorId: req.user.userId,
+      authorId: (req as CusRequest).user.userId,
     });
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
@@ -100,12 +120,16 @@ const deletePostByUser = async (req, res, next) => {
     next(error);
   }
 };
-const editPostByUser = async (req, res, next) => {
+const editPostByUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { title, editorDoc: doc, hashtags } = req.body;
   const { id } = req.params;
-  const authorId = req.user.userId;
+  const authorId = (req as CusRequest).user.userId;
   const validated = postValidation({
-    post: { title, doc, authorId, hashtags },
+    post: { title, doc, authorId, hashtags } as IPost,
   });
   const message = find(validated, (item) => item != false);
   if (message) {

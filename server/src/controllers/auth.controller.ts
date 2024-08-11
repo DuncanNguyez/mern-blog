@@ -1,17 +1,19 @@
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import lodash from "lodash";
+import { Request, Response, NextFunction } from "express";
 
-import User from "../models/user.model.js";
-import { errorHandler } from "../utils/error.js";
-import { userValidation } from "../utils/validation.js";
+import User, { IUser } from "../models/user.model";
+import { errorHandler } from "../utils/error";
+import { userValidation } from "../utils/validation";
 
 const { find } = lodash;
 
-const signup = async (req, res, next) => {
+const signup = async (req: Request, res: Response, next: NextFunction) => {
   const { username, email, password, isAuthor } = req.body;
   try {
-    const validated = userValidation({ user: { username, email, password } });
+    const userP = { username, email, password } as IUser;
+    const validated = await userValidation({ user: userP });
     const message = find(validated, (message) => message != false);
     if (message) {
       return res.status(400).json({ message });
@@ -29,7 +31,7 @@ const signup = async (req, res, next) => {
     return next(error);
   }
 };
-const signin = async (req, res, next) => {
+const signin = async (req: Request, res: Response, next: NextFunction) => {
   const { username, password } = req.body;
 
   if (!username || !password || username === "" || password === "") {
@@ -47,7 +49,7 @@ const signin = async (req, res, next) => {
     }
     const token = jwt.sign(
       { userId: user._id, isAuthor: user.isAuthor },
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET as string
     );
     const { password: p, ...rest } = user;
     res
@@ -59,13 +61,13 @@ const signin = async (req, res, next) => {
   }
 };
 
-const googleAuth = async (req, res, next) => {
+const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
   const { email, imageUrl } = req.body;
   const user = await User.findOne({ email }).lean();
   if (user) {
     const token = jwt.sign(
       { userId: user._id, isAuthor: user.isAuthor },
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET as string
     );
     const { password, ...rest } = user;
     return res
@@ -84,7 +86,7 @@ const googleAuth = async (req, res, next) => {
   });
   const token = jwt.sign(
     { userId: newUser._id, isAuthor: newUser.isAuthor },
-    process.env.JWT_SECRET
+    process.env.JWT_SECRET as string
   );
   const { password: pw, ...rest } = newUser._doc;
 
@@ -93,29 +95,36 @@ const googleAuth = async (req, res, next) => {
     .cookie("access_token", token, { httpOnly: true })
     .json(rest);
 };
-const protect = async (req, res, next) => {
+const protect = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.cookies.access_token;
   if (!token) {
     return next(errorHandler(401, "Unauthorized"));
   }
-  jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
-    if (err) {
-      return next(errorHandler(401, "Unauthorized"));
+  jwt.verify(
+    token,
+    process.env.JWT_SECRET as string,
+    (err: any, payload: any) => {
+      if (err) {
+        return next(errorHandler(401, "Unauthorized"));
+      }
+      (req as CusRequest).user = payload;
+      return next();
     }
-    req.user = payload;
-    return next();
-  });
+  );
 };
 
-const authorProtect = async (req, res, next) => {
-  console.log(req.user)
-  if (req.user.isAuthor) {
+const authorProtect = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if ((req as CusRequest).user.isAuthor) {
     return next();
   }
   return next(errorHandler(403, "Access is not allowed"));
 };
 
-const signout = (req, res, next) => {
+const signout = (req: Request, res: Response, next: NextFunction) => {
   try {
     return res
       .status(200)
@@ -125,5 +134,7 @@ const signout = (req, res, next) => {
     return next(error);
   }
 };
-
+export interface CusRequest extends Request {
+  user: IUser;
+}
 export { signin, signup, googleAuth, protect, authorProtect, signout };

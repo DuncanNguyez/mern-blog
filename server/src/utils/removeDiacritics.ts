@@ -133,9 +133,11 @@ const diacriticsMap = {
   Ỷ: "Y",
   Ỹ: "Y",
   Ỵ: "Y",
+} as {
+  [key: string]: string;
 };
 
-const removeDiacritics = (str) =>
+const removeDiacritics = (str: string) =>
   str.replace(/[^\u0000-\u007E]/g, (a) => diacriticsMap[a] || a);
 
 export default removeDiacritics;
