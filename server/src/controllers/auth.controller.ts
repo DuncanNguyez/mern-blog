@@ -25,8 +25,9 @@ const signup = async (req: Request, res: Response, next: NextFunction) => {
       password: hashPassword,
       isAuthor,
     });
-    const { password: pw, ...rest } = user._doc;
-    return res.status(201).json(rest);
+    const doc = user._doc;
+    delete doc.password;
+    return res.status(201).json(doc);
   } catch (error) {
     return next(error);
   }
@@ -43,7 +44,7 @@ const signin = async (req: Request, res: Response, next: NextFunction) => {
     if (!user) {
       return next(errorHandler(404, "User not found!"));
     }
-    const validPw = bcryptjs.compareSync(password, user.password);
+    const validPw = bcryptjs.compareSync(password, user.password as string);
     if (!validPw) {
       return next(errorHandler(400, "Invalid password"));
     }
@@ -51,17 +52,17 @@ const signin = async (req: Request, res: Response, next: NextFunction) => {
       { userId: user._id, isAuthor: user.isAuthor },
       process.env.JWT_SECRET as string
     );
-    const { password: p, ...rest } = user;
+    delete user.password;
     res
       .status(200)
       .cookie("access_token", token, { httpOnly: true })
-      .json(rest);
+      .json(user);
   } catch (error) {
     return next(error);
   }
 };
 
-const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
+const googleAuth = async (req: Request, res: Response) => {
   const { email, imageUrl } = req.body;
   const user = await User.findOne({ email }).lean();
   if (user) {
@@ -69,11 +70,11 @@ const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
       { userId: user._id, isAuthor: user.isAuthor },
       process.env.JWT_SECRET as string
     );
-    const { password, ...rest } = user;
+    delete user.password;
     return res
       .status(200)
       .cookie("access_token", token, { httpOnly: true })
-      .json(rest);
+      .json(user);
   }
   const password =
     Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
@@ -88,12 +89,13 @@ const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
     { userId: newUser._id, isAuthor: newUser.isAuthor },
     process.env.JWT_SECRET as string
   );
-  const { password: pw, ...rest } = newUser._doc;
+  const doc = newUser._doc;
+  delete doc.password;
 
   return res
     .status(201)
     .cookie("access_token", token, { httpOnly: true })
-    .json(rest);
+    .json(doc);
 };
 const protect = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.cookies.access_token;

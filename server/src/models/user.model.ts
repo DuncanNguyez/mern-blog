@@ -3,7 +3,7 @@ import { model, Schema } from "mongoose";
 export interface IUser {
   username: string;
   email: string;
-  password: string;
+  password?: string;
   imageUrl: string;
   isAuthor: boolean;
   [key: string]: any;

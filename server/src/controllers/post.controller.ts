@@ -35,7 +35,7 @@ const createPostByUser = async (
     next(error);
   }
 };
-const getPost = async (req: Request, res: Response, next: NextFunction) => {
+const getPost = async (req: Request, res: Response,) => {
   const { path } = req.params;
   const post = await Post.findOne({ path }).lean();
   if (!post) {

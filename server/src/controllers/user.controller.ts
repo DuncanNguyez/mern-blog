@@ -31,8 +31,8 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     if (!userUpdated) {
       return res.status(404).json({ message: "User not found" });
     }
-    const { password, ...rest } = userUpdated;
-    return res.status(200).json(rest);
+    delete userUpdated.password
+    return res.status(200).json(userUpdated);
   } catch (error) {
     console.log(error);
     next(error);
