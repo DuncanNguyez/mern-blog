@@ -8,6 +8,7 @@ import {
   getPostByUser,
   getPostsByUser,
 } from "../controllers/post.controller";
+import { getComments } from "../controllers/comment.controller";
 const router = express.Router();
 
 router.post("/create", protect, authorProtect, createPostByUser);
@@ -15,6 +16,7 @@ router.post("/create", protect, authorProtect, createPostByUser);
 router.get("/user/:path", protect, authorProtect, getPostByUser);
 router.get("/user", protect, authorProtect, getPostsByUser);
 router.get("/:path", getPost);
+router.get("/:id/comments/",getComments)
 
 router.put("/edit/:id", protect, authorProtect, editPostByUser);
 
