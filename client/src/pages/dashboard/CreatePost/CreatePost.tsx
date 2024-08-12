@@ -1,6 +1,5 @@
 import { AiOutlineCloseCircle } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
-import { createTheme, ThemeProvider } from "@mui/material";
 import { Alert, Button, Spinner, TextInput } from "flowbite-react";
 
 import {
@@ -19,7 +18,6 @@ export default function CreatePost() {
   const { title, editorDoc, error, loading, hashtags } = useSelector(
     (state: RootState) => state.draft
   );
-  const { theme } = useSelector((state: RootState) => state.theme);
   const editorRef = useRef<any>();
   const dispatch = useDispatch();
   const [success, setSuccess] = useState(false);
@@ -67,14 +65,7 @@ export default function CreatePost() {
     set.delete(tag);
     dispatch(updateDraftHashtags(Array.from(set)));
   };
-  const mTheme = createTheme({
-    palette: {
-      mode: theme,
-      secondary: {
-        main: "#0bd074",
-      },
-    },
-  });
+
   const handleSubmit = async (e: MouseEvent) => {
     e.preventDefault();
     const payload = { title, editorDoc, hashtags };
@@ -110,7 +101,6 @@ export default function CreatePost() {
   };
 
   return (
-    <ThemeProvider theme={mTheme}>
       <div className="max-w-4xl w-full mx-auto p-3 min-h-screen">
         <form className="w-full mx-auto flex flex-col gap-3">
           <h1 className="text-center text-3xl font-semibold ">Create post</h1>
@@ -171,6 +161,6 @@ export default function CreatePost() {
           {success && <Alert color={"success"}>Successful</Alert>}
         </form>
       </div>
-    </ThemeProvider>
+   
   );
 }

@@ -1,4 +1,5 @@
 import { LinkBubbleMenu, RichTextEditor, TableBubbleMenu } from "mui-tiptap";
+import { createTheme, ThemeProvider } from "@mui/material";
 import { getAuth } from "firebase/auth";
 import {
   deleteObject,
@@ -12,6 +13,7 @@ import { extensions } from "../tiptap/editorExtension";
 import EditorMenuControls from "./EditorMenuControls";
 import { app } from "../firebase";
 import { ReactNode } from "react";
+import { useSelector } from "react-redux";
 interface PostEditorProps {
   editorRef: any;
   editorDoc: Content;
@@ -28,6 +30,8 @@ const PostEditor: React.FC<PostEditorProps> = ({
   menuButtons,
   editable = true,
 }) => {
+  const { theme } = useSelector((state: any) => state.theme);
+
   const findImageNode = (node: JSONContent, imagesData: Set<string>) => {
     if (!node) {
       return;
@@ -106,28 +110,37 @@ const PostEditor: React.FC<PostEditorProps> = ({
       );
     }
   };
-
+  const mTheme = createTheme({
+    palette: {
+      mode: theme,
+      secondary: {
+        main: "#0bd074",
+      },
+    },
+  });
   return (
     <>
-      <RichTextEditor
-        editable={editable}
-        ref={editorRef}
-        className="min-h-96"
-        content={editorDoc}
-        editorDependencies={dependenciesEnable ? [editorDoc] : []}
-        extensions={extensions}
-        renderControls={() => (
-          <EditorMenuControls child={menuButtons} uploadImage={uploadImage} />
-        )}
-        onUpdate={handleChangeEditor}
-      >
-        {() => (
-          <>
-            <LinkBubbleMenu />
-            <TableBubbleMenu />
-          </>
-        )}
-      </RichTextEditor>
+      <ThemeProvider theme={mTheme}>
+        <RichTextEditor
+          editable={editable}
+          ref={editorRef}
+          className="min-h-96"
+          content={editorDoc}
+          editorDependencies={dependenciesEnable ? [editorDoc] : []}
+          extensions={extensions}
+          renderControls={() => (
+            <EditorMenuControls child={menuButtons} uploadImage={uploadImage} />
+          )}
+          onUpdate={handleChangeEditor}
+        >
+          {() => (
+            <>
+              <LinkBubbleMenu />
+              <TableBubbleMenu />
+            </>
+          )}
+        </RichTextEditor>
+      </ThemeProvider>
     </>
   );
 };

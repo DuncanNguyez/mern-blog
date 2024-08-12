@@ -1,6 +1,5 @@
 import { AiOutlineCloseCircle } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
-import { createTheme, ThemeProvider } from "@mui/material";
 import { Alert, Button, Spinner, TextInput } from "flowbite-react";
 
 import {
@@ -27,7 +26,6 @@ import MenuButtonReset from "../../../components/MenuButtonReset";
 
 export default function EditPost() {
   const dispatch = useDispatch();
-  const { theme } = useSelector((state: RootState) => state.theme);
   const [success, setSuccess] = useState(false);
   const [rerender, setRerender] = useState(false);
   const editorRef = useRef<any>();
@@ -35,7 +33,7 @@ export default function EditPost() {
     (state: RootState) => state.revising
   );
   const path = useParams().path as string;
-  
+
   const { title, doc, hashtags, _id }: Post = posts[path] || {};
 
   const getPost = useCallback(async () => {
@@ -58,13 +56,13 @@ export default function EditPost() {
     } catch (error: any) {
       dispatch(fetchPostFailure(error.message));
     }
-  }, [path,dispatch]);
+  }, [path, dispatch]);
 
   useEffect(() => {
     if (!doc) {
       getPost();
     }
-  }, [doc,getPost]);
+  }, [doc, getPost]);
 
   useEffect(() => {
     if (success) {
@@ -105,7 +103,10 @@ export default function EditPost() {
   const addHashtagsWithInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.code === "Enter") {
       const el = e.target as HTMLInputElement;
-      const tags = el.value.trim().length > 0 ? el.value.trim().toLowerCase().split(" ") : [];
+      const tags =
+        el.value.trim().length > 0
+          ? el.value.trim().toLowerCase().split(" ")
+          : [];
       const newHashtags = Array.from(new Set([...hashtags, ...tags]));
       dispatch(updateRevisingPost({ hashtags: newHashtags, path } as Post));
 
@@ -120,14 +121,7 @@ export default function EditPost() {
     set.delete(tag || "");
     dispatch(updateRevisingPost({ hashtags: Array.from(set), path } as Post));
   };
-  const mTheme = createTheme({
-    palette: {
-      mode: theme,
-      secondary: {
-        main: "#0bd074",
-      },
-    },
-  });
+
   const handleSubmit = async (e: MouseEvent) => {
     e.preventDefault();
     const payload = { title, editorDoc: doc, hashtags };
@@ -162,73 +156,71 @@ export default function EditPost() {
   };
 
   return (
-    <ThemeProvider theme={mTheme}>
-      <div className="max-w-4xl w-full mx-auto p-3 min-h-screen">
-        <form className="w-full mx-auto flex flex-col gap-3">
-          <h1 className="text-center text-3xl font-semibold ">Create post</h1>
+    <div className="max-w-4xl w-full mx-auto p-3 min-h-screen">
+      <form className="w-full mx-auto flex flex-col gap-3">
+        <h1 className="text-center text-3xl font-semibold ">Edit post</h1>
+        <TextInput
+          placeholder="Title"
+          onChange={handleChangeTitle}
+          value={title}
+        />
+        <div className="flex gap-1 items-center">
           <TextInput
-            placeholder="Title"
-            onChange={handleChangeTitle}
-            value={title}
+            id="hashtagsInput"
+            onKeyDown={addHashtagsWithInput}
+            className="flex-1"
+            placeholder="hashtag"
           />
-          <div className="flex gap-1 items-center">
-            <TextInput
-              id="hashtagsInput"
-              onKeyDown={addHashtagsWithInput}
-              className="flex-1"
-              placeholder="hashtag"
-            />
-            <Button onClick={addHashtagsWithButton} color={"blue"}>
-              Add
-            </Button>
-          </div>
-          <div className="px-1   whitespace-normal ">
-            {hashtags?.map((tag: string) => {
-              return (
-                <span
-                  onClick={handleDeleteHashtag}
-                  className=" group px-1.5 align-middle inline-block via-emerald-50 m-1.5 border rounded cursor-pointer relative"
-                  key={tag}
-                >
-                  {tag}
-                  <AiOutlineCloseCircle className="hidden group-hover:block absolute top-[-13px] right-[-13px]" />
-                </span>
-              );
-            })}
-          </div>
-
-          <PostEditor
-            menuButtons={<MenuButtonReset handleClick={handleReset} />}
-            editorDoc={doc || null}
-            onUpdate={(editor: any) => {
-              dispatch(
-                updateRevisingPost({ doc: editor.getJSON(), path } as Post)
-              );
-            }}
-            dependenciesEnable={rerender}
-            editorRef={editorRef}
-            editable={!rerender}
-          />
-          <Button
-            type="button"
-            gradientDuoTone={"cyanToBlue"}
-            outline
-            disabled={loading}
-            onClick={handleSubmit}
-          >
-            {loading ? (
-              <>
-                <Spinner size={"sm"} />
-                <span className="pl-3">loading...</span>
-              </>
-            ) : (
-              "Save"
-            )}
+          <Button onClick={addHashtagsWithButton} color={"blue"}>
+            Add
           </Button>
-          {error && <Alert color={"failure"}>{error}</Alert>}
-          {success && <Alert color={"success"}>Successful</Alert>}
-        </form>
-      </div>
-    </ThemeProvider>
+        </div>
+        <div className="px-1   whitespace-normal ">
+          {hashtags?.map((tag: string) => {
+            return (
+              <span
+                onClick={handleDeleteHashtag}
+                className=" group px-1.5 align-middle inline-block via-emerald-50 m-1.5 border rounded cursor-pointer relative"
+                key={tag}
+              >
+                {tag}
+                <AiOutlineCloseCircle className="hidden group-hover:block absolute top-[-13px] right-[-13px]" />
+              </span>
+            );
+          })}
+        </div>
+
+        <PostEditor
+          menuButtons={<MenuButtonReset handleClick={handleReset} />}
+          editorDoc={doc || null}
+          onUpdate={(editor: any) => {
+            dispatch(
+              updateRevisingPost({ doc: editor.getJSON(), path } as Post)
+            );
+          }}
+          dependenciesEnable={rerender}
+          editorRef={editorRef}
+          editable={!rerender}
+        />
+        <Button
+          type="button"
+          gradientDuoTone={"cyanToBlue"}
+          outline
+          disabled={loading}
+          onClick={handleSubmit}
+        >
+          {loading ? (
+            <>
+              <Spinner size={"sm"} />
+              <span className="pl-3">loading...</span>
+            </>
+          ) : (
+            "Save"
+          )}
+        </Button>
+        {error && <Alert color={"failure"}>{error}</Alert>}
+        {success && <Alert color={"success"}>Successful</Alert>}
+      </form>
+    </div>
   );
 }
