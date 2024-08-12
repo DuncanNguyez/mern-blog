@@ -15,7 +15,7 @@ import { ReactNode } from "react";
 interface PostEditorProps {
   editorRef: any;
   editorDoc: Content;
-  onUpdate: Function;
+  onUpdate: (editor: any) => void;
   dependenciesEnable?: boolean;
   menuButtons?: ReactNode;
   editable?: boolean;
@@ -45,8 +45,8 @@ const PostEditor: React.FC<PostEditorProps> = ({
     arr.map((item: JSONContent) => findImageNode(item, imagesData));
   };
   const deleteImage = async (transaction: any) => {
-    let setSrc = new Set<string>();
-    let beforeSetSrc = new Set<string>();
+    const setSrc = new Set<string>();
+    const beforeSetSrc = new Set<string>();
     transaction.doc.forEach((node: JSONContent) => {
       findImageNode(node, setSrc);
     });

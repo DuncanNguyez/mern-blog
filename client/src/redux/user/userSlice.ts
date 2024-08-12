@@ -1,16 +1,16 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface User {
-  _id: String;
-  username: String;
-  imageUrl: String;
-  isAuthor: Boolean;
+  _id: string;
+  username: string;
+  imageUrl: string;
+  isAuthor: boolean;
   password: string;
 }
 interface UserState {
   currentUser: User | null;
-  error: String;
-  loading: Boolean;
+  error: string;
+  loading: boolean;
 }
 const initialState: UserState = {
   currentUser: null,
@@ -31,7 +31,7 @@ const userSlice = createSlice({
       state.loading = false;
       state.error = "";
     },
-    signInFailure: (state: UserState, action: PayloadAction<String>) => {
+    signInFailure: (state: UserState, action: PayloadAction<string>) => {
       state.loading = false;
       state.error = action.payload;
     },
@@ -44,7 +44,7 @@ const userSlice = createSlice({
       state.loading = false;
       state.error = "";
     },
-    updateFailure: (state: UserState, action: PayloadAction<String>) => {
+    updateFailure: (state: UserState, action: PayloadAction<string>) => {
       state.loading = false;
       state.error = action.payload;
     },
@@ -57,7 +57,7 @@ const userSlice = createSlice({
       state.error = "";
       state.loading = false;
     },
-    deleteFailure: (state: UserState, action: PayloadAction<String>) => {
+    deleteFailure: (state: UserState, action: PayloadAction<string>) => {
       state.error = action.payload;
       state.loading = false;
     },

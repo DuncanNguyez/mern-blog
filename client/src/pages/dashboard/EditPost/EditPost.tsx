@@ -34,10 +34,8 @@ export default function EditPost() {
   const { loading, error, posts } = useSelector(
     (state: RootState) => state.revising
   );
-  const { path } = useParams();
-  if (!path) {
-    return;
-  }
+  const path = useParams().path as string;
+  
   const { title, doc, hashtags, _id }: Post = posts[path] || {};
 
   const getPost = useCallback(async () => {
@@ -60,13 +58,13 @@ export default function EditPost() {
     } catch (error: any) {
       dispatch(fetchPostFailure(error.message));
     }
-  }, [path]);
+  }, [path,dispatch]);
 
   useEffect(() => {
     if (!doc) {
       getPost();
     }
-  }, [doc]);
+  }, [doc,getPost]);
 
   useEffect(() => {
     if (success) {

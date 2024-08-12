@@ -29,7 +29,7 @@ export default function App() {
                 <Route element={element} path={path} key={path} />
               ) : (
                 <Route element={<AuthorRoute />} key={path}>
-                  <Route element={element}  path={path} />
+                  <Route element={element} path={path} />
                 </Route>
               )
             )}
@@ -40,7 +40,7 @@ export default function App() {
         <Route path="/about" element={<About />}></Route>
         <Route path="*" element={<h1>notfound</h1>}></Route>
       </Routes>
-      <ScrollToTop/>
+      <ScrollToTop />
       <FooterCom></FooterCom>
     </BrowserRouter>
   );
