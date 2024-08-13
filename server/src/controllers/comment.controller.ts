@@ -44,24 +44,57 @@ const deleteCommentByUser = async (
     next(error);
   }
 };
-const getComments = async (req: Request, res: Response, next: NextFunction) => {
+const getCommentsByPost = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
+    const { skip, limit, onlyRoot } = req.query;
     const { id } = req.params;
-    const { replyToId } = req.query;
-    const query: FilterQuery<IComment> = {
-      postId: id,
-      ...(replyToId ? { replyToId } : {}),
-    };
     const comments = await Comment.find(
-      query,
+      {
+        postId: id,
+        ...(onlyRoot ? { replyToId: { $exists: false } } : {}),
+      },
       {},
-      { sort: { createdAt: -1 } }
+      { skip, limit, sort: { createdAt: -1 } } as FilterQuery<IComment>
     ).lean();
     if (comments?.length > 0) {
       return res.status(200).json(comments);
     }
+    return res.status(200).json([]);
   } catch (error) {
     next(error);
   }
 };
-export { createCommentByUser, deleteCommentByUser, getComments };
+
+const getCommentsByComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { skip, limit } = req.query;
+    const { replyToId } = req.params;
+    const comments = await Comment.find(
+      {
+        replyToId,
+      },
+      {},
+      { skip, limit, sort: { createdAt: -1 } } as FilterQuery<IComment>
+    ).lean();
+    if (comments?.length > 0) {
+      return res.status(200).json(comments);
+    }
+    return res.status(200).json([]);
+  } catch (error) {
+    next(error);
+  }
+};
+export {
+  createCommentByUser,
+  deleteCommentByUser,
+  getCommentsByPost,
+  getCommentsByComment,
+};

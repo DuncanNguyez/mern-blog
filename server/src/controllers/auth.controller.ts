@@ -27,7 +27,14 @@ const signup = async (req: Request, res: Response, next: NextFunction) => {
     });
     const doc = user._doc;
     delete doc.password;
-    return res.status(201).json(doc);
+    const token = jwt.sign(
+      { _id: doc._id, isAuthor: doc.isAuthor },
+      process.env.JWT_SECRET as string
+    );
+    return res
+      .status(200)
+      .cookie("access_token", token, { httpOnly: true })
+      .json(doc);
   } catch (error) {
     return next(error);
   }
@@ -49,7 +56,7 @@ const signin = async (req: Request, res: Response, next: NextFunction) => {
       return next(errorHandler(400, "Invalid password"));
     }
     const token = jwt.sign(
-      { userId: user._id, isAuthor: user.isAuthor },
+      { _id: user._id, isAuthor: user.isAuthor },
       process.env.JWT_SECRET as string
     );
     delete user.password;
@@ -67,7 +74,7 @@ const googleAuth = async (req: Request, res: Response) => {
   const user = await User.findOne({ email }).lean();
   if (user) {
     const token = jwt.sign(
-      { userId: user._id, isAuthor: user.isAuthor },
+      { _id: user._id, isAuthor: user.isAuthor },
       process.env.JWT_SECRET as string
     );
     delete user.password;
@@ -86,7 +93,7 @@ const googleAuth = async (req: Request, res: Response) => {
     imageUrl,
   });
   const token = jwt.sign(
-    { userId: newUser._id, isAuthor: newUser.isAuthor },
+    { _id: newUser._id, isAuthor: newUser.isAuthor },
     process.env.JWT_SECRET as string
   );
   const doc = newUser._doc;

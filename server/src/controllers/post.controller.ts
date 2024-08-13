@@ -16,13 +16,13 @@ const createPostByUser = async (
   next: NextFunction
 ) => {
   const { title, editorDoc: doc, hashtags } = req.body;
-  const authorId = (req as CusRequest).user.userId;
+  const authorId = (req as CusRequest).user._id;
   const path =
     removeDiacritics(title).trim().toLowerCase().replace(/ /g, "-") +
     "-" +
     generateRandomString(10).toLowerCase();
   const validated = postValidation({
-    post: { title, path, doc, authorId, hashtags },
+    post: { title, path, doc, authorId: authorId as string, hashtags },
   });
   const message = find(validated, (item) => item != false);
   if (message) {
@@ -35,7 +35,7 @@ const createPostByUser = async (
     next(error);
   }
 };
-const getPost = async (req: Request, res: Response,) => {
+const getPost = async (req: Request, res: Response) => {
   const { path } = req.params;
   const post = await Post.findOne({ path }).lean();
   if (!post) {
@@ -49,7 +49,7 @@ const getPostsByUser = async (
   next: NextFunction
 ) => {
   try {
-    const id = (req as CusRequest).user.userId;
+    const id = (req as CusRequest).user._id;
     const { skip, limit } = req.query;
     const fields = req.query.fields as string;
     let projection = {};
@@ -110,7 +110,7 @@ const deletePostByUser = async (
     const { id } = req.params;
     const post = await Post.findOneAndDelete({
       _id: id,
-      authorId: (req as CusRequest).user.userId,
+      authorId: (req as CusRequest).user._id,
     });
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
@@ -127,7 +127,7 @@ const editPostByUser = async (
 ) => {
   const { title, editorDoc: doc, hashtags } = req.body;
   const { id } = req.params;
-  const authorId = (req as CusRequest).user.userId;
+  const authorId = (req as CusRequest).user._id;
   const validated = postValidation({
     post: { title, doc, authorId, hashtags } as IPost,
   });

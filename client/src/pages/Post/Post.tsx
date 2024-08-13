@@ -7,6 +7,7 @@ import { useParams } from "react-router-dom";
 import { extensions } from "../../tiptap/editorExtension";
 import TOC from "./TOC";
 import { Post as P } from "../../redux/draft/draftSlice";
+import Comments from "./Comments";
 
 export default function Post() {
   const { theme } = useSelector((state: any) => state.theme);
@@ -42,7 +43,7 @@ export default function Post() {
         {!post ? (
           <h1 className="m-auto">POST NOT FOUND</h1>
         ) : (
-          <div className="p-10">
+          <div className="p-10 flex-1">
             <h1 id="title" className="font-bold  text-4xl m-2">
               {title}
             </h1>
@@ -61,6 +62,7 @@ export default function Post() {
               </div>
             </div>
             <RichTextReadOnly content={doc} extensions={extensions} />
+            <Comments postId={post._id}/>
           </div>
         )}
         <TOC />
