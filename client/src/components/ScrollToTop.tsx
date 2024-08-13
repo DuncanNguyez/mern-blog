@@ -1,19 +1,23 @@
+import { useEffect } from "react";
 import { PiMonitorArrowUpThin } from "react-icons/pi";
 
 export default function ScrollToTop() {
-  setTimeout(() => {
-    const mybutton = document.getElementById("toTop");
-    window.addEventListener("scroll", () => {
-      if (
-        document.body.scrollTop > 20 ||
-        document.documentElement.scrollTop > 20
-      ) {
-        mybutton.classList.remove("hidden");
-      } else {
-        mybutton.classList.add("hidden");
-      }
-    });
-  }, 500);
+  useEffect(() => {
+    setTimeout(() => {
+      const toTopBtn = document.getElementById("toTop");
+      if (!toTopBtn) return;
+      window.onscroll = () => {
+        if (
+          document.body.scrollTop > 20 ||
+          document.documentElement.scrollTop > 20
+        ) {
+          toTopBtn.classList.remove("hidden");
+        } else {
+          toTopBtn.classList.add("hidden");
+        }
+      };
+    }, 500);
+  }, []);
   return (
     <div
       id="toTop"
