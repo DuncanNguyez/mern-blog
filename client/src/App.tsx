@@ -13,8 +13,18 @@ import Dashboard from "./pages/dashboard/Dashboard.jsx";
 import AuthorRoute from "./components/AuthorRoute.jsx";
 import Post from "./pages/Post/Post.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
+import { getAuth } from "firebase/auth";
+import { useDispatch } from "react-redux";
+import { app } from "./firebase.js";
+import { signOutSuccess } from "./redux/user/userSlice.js";
 
 export default function App() {
+  const dispatch = useDispatch();
+  getAuth(app).onAuthStateChanged((user) => {
+    if (!user) {
+      dispatch(signOutSuccess());
+    }
+  });
   return (
     <BrowserRouter>
       <Header></Header>
