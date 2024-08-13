@@ -7,6 +7,7 @@ import { toggleTheme } from "../redux/theme/themSlice.ts";
 import { app } from "../firebase.ts";
 import { getAuth } from "firebase/auth";
 import { signOutSuccess } from "../redux/user/userSlice.ts";
+import { useCallback } from "react";
 
 export default function Header() {
   const path = useLocation().pathname;
@@ -14,7 +15,7 @@ export default function Header() {
   const navigate = useNavigate();
   const { currentUser } = useSelector((state: any) => state.user);
   const { theme } = useSelector((state: any) => state.theme);
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     try {
       getAuth(app).signOut();
       await fetch("/api/v1/auth/sign-out", { method: "post" });
@@ -23,7 +24,7 @@ export default function Header() {
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [dispatch, navigate]);
   return (
     <Navbar className="border-b-2">
       <Link

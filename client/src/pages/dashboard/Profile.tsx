@@ -1,5 +1,5 @@
 import { Alert, Button, Modal, Spinner, TextInput } from "flowbite-react";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import {
@@ -44,51 +44,54 @@ export default function Profile() {
   const filePickerRef = useRef<any>();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const handleImageChange = (e: any) => {
+  const handleImageChange = useCallback((e: any) => {
     const file = e.target.files[0];
     if (file) {
       setImageFile(file);
       setImageUrl(URL.createObjectURL(file));
     }
-  };
-  const handleFormChange = (data: Record<string, any>) => {
+  }, []);
+  const handleFormChange = useCallback((data: Record<string, any>) => {
     setFormData((prev) => ({ ...prev, ...data }));
-  };
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    dispatch(updateStart());
-    if (imageFileUploadProcess) {
-      return dispatch(updateFailure("Please wait for image to upload"));
-    }
-    try {
-      const user = getAuth(app).currentUser;
-      if (!formData.password) throw new Error("invalid password");
-      if (!user) {
-        throw new Error("User not found");
+  }, []);
+  const handleSubmit = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
+      dispatch(updateStart());
+      if (imageFileUploadProcess) {
+        return dispatch(updateFailure("Please wait for image to upload"));
       }
-      await updatePassword(user, formData.password);
-    } catch (error: any) {
-      return dispatch(updateFailure(error.message));
-    }
-    try {
-      const res = await fetch(`/api/v1/user/update/${currentUser._id}`, {
-        method: "put",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        return dispatch(updateFailure(data.message));
+      try {
+        const user = getAuth(app).currentUser;
+        if (!formData.password) throw new Error("invalid password");
+        if (!user) {
+          throw new Error("User not found");
+        }
+        await updatePassword(user, formData.password);
+      } catch (error: any) {
+        return dispatch(updateFailure(error.message));
       }
-      dispatch(updateSuccess(data));
-      setUpdateUserSuccess(true);
-    } catch (error: any) {
-      dispatch(updateFailure(error.message));
-    }
-  };
-  const handleSignOut = async () => {
+      try {
+        const res = await fetch(`/api/v1/user/update/${currentUser._id}`, {
+          method: "put",
+          headers: {
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          return dispatch(updateFailure(data.message));
+        }
+        dispatch(updateSuccess(data));
+        setUpdateUserSuccess(true);
+      } catch (error: any) {
+        dispatch(updateFailure(error.message));
+      }
+    },
+    [currentUser._id, dispatch, formData, imageFileUploadProcess]
+  );
+  const handleSignOut = useCallback(async () => {
     try {
       getAuth(app).signOut();
       await fetch("/api/v1/auth/sign-out", { method: "post" });
@@ -97,8 +100,8 @@ export default function Profile() {
     } catch (error) {
       console.log(error);
     }
-  };
-  const handleDeleteAccount = async () => {
+  }, [dispatch, navigate]);
+  const handleDeleteAccount = useCallback(async () => {
     try {
       dispatch(deleteStart());
       const res = await fetch(`api/v1/user/delete/${currentUser._id}`);
@@ -121,7 +124,7 @@ export default function Profile() {
         console.log(error.message);
       }
     }
-  };
+  }, [currentUser._id, currentUser.imageUrl, dispatch]);
   useEffect(() => {
     if (updateUserSuccess) {
       setTimeout(() => {

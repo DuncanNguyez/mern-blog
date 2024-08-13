@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { app } from "../../firebase";
 import { signOutSuccess } from "../../redux/user/userSlice";
 import { RootState } from "../../redux/store";
+import { useCallback } from "react";
 
 export default function DashboardSidebar() {
   const location = useLocation();
@@ -15,7 +16,7 @@ export default function DashboardSidebar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { currentUser } = useSelector((state: RootState) => state.user);
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     try {
       getAuth(app).signOut();
       await fetch("/api/v1/auth/sign-out", { method: "post" });
@@ -24,7 +25,7 @@ export default function DashboardSidebar() {
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [dispatch, navigate]);
   return (
     <Sidebar className="min-h-screen md:top-0 md:sticky w-full md:w-56">
       <Sidebar.Items className="h-screen">

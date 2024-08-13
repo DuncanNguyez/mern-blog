@@ -1,5 +1,5 @@
 import { Sidebar } from "flowbite-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 type Toc = Array<Record<string, any>>;
 export default function TOC() {
@@ -8,6 +8,8 @@ export default function TOC() {
   const [hashPath, setHashPath] = useState(location.hash.replace("#", ""));
   setTimeout(() => {
     let toc: Toc = [];
+    const titleEle = document.querySelector("#title");
+    toc.push({ id: "title", title: titleEle?.textContent, level: "h1" });
     document
       .querySelectorAll(".tiptap .MuiTiptap-HeadingWithAnchorComponent-root")
       .forEach((item) => {
@@ -18,11 +20,11 @@ export default function TOC() {
       });
     setToc(toc);
   }, 500);
-  const handleChangeHash = () => {
+  const handleChangeHash = useCallback(() => {
     setTimeout(() => {
       setHashPath(location.hash.replace("#", ""));
     }, 200);
-  };
+  }, []);
   return (
     <Sidebar className="h-screen top-0 sticky sidebar" id="">
       <Sidebar.ItemGroup id="nav-post">

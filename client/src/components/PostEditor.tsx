@@ -12,7 +12,7 @@ import { Content, JSONContent } from "@tiptap/core";
 import { extensions } from "../tiptap/editorExtension";
 import EditorMenuControls from "./EditorMenuControls";
 import { app } from "../firebase";
-import { ReactNode } from "react";
+import { ReactNode, useCallback } from "react";
 import { useSelector } from "react-redux";
 interface PostEditorProps {
   editorRef: any;
@@ -32,49 +32,58 @@ const PostEditor: React.FC<PostEditorProps> = ({
 }) => {
   const { theme } = useSelector((state: any) => state.theme);
 
-  const findImageNode = (node: JSONContent, imagesData: Set<string>) => {
-    if (!node) {
-      return;
-    }
-    const type = node.type as any;
-    if (type.name === "image") {
-      const { src } = node.attrs || {};
-      imagesData.add(src);
-      return;
-    }
-    const currentContent = node.content as any;
-    const arr = Array.isArray(currentContent)
-      ? currentContent
-      : currentContent.content;
-    arr.map((item: JSONContent) => findImageNode(item, imagesData));
-  };
-  const deleteImage = async (transaction: any) => {
-    const setSrc = new Set<string>();
-    const beforeSetSrc = new Set<string>();
-    transaction.doc.forEach((node: JSONContent) => {
-      findImageNode(node, setSrc);
-    });
-    transaction.before.forEach((node: JSONContent) => {
-      findImageNode(node, beforeSetSrc);
-    });
-
-    beforeSetSrc.forEach((src) => {
-      if (!setSrc.has(src)) {
-        getAuth(app);
-        const storage = getStorage(app);
-        try {
-          const desertRef = ref(storage, src);
-          deleteObject(desertRef);
-        } catch (error: any) {
-          console.log(error.message);
-        }
+  const findImageNode = useCallback(
+    (node: JSONContent, imagesData: Set<string>) => {
+      if (!node) {
+        return;
       }
-    });
-  };
-  const handleChangeEditor = ({ editor, transaction }: any) => {
-    onUpdate(editor);
-    deleteImage(transaction);
-  };
+      const type = node.type as any;
+      if (type.name === "image") {
+        const { src } = node.attrs || {};
+        imagesData.add(src);
+        return;
+      }
+      const currentContent = node.content as any;
+      const arr = Array.isArray(currentContent)
+        ? currentContent
+        : currentContent.content;
+      arr.map((item: JSONContent) => findImageNode(item, imagesData));
+    },
+    []
+  );
+  const deleteImage = useCallback(
+    async (transaction: any) => {
+      const setSrc = new Set<string>();
+      const beforeSetSrc = new Set<string>();
+      transaction.doc.forEach((node: JSONContent) => {
+        findImageNode(node, setSrc);
+      });
+      transaction.before.forEach((node: JSONContent) => {
+        findImageNode(node, beforeSetSrc);
+      });
+
+      beforeSetSrc.forEach((src) => {
+        if (!setSrc.has(src)) {
+          getAuth(app);
+          const storage = getStorage(app);
+          try {
+            const desertRef = ref(storage, src);
+            deleteObject(desertRef);
+          } catch (error: any) {
+            console.log(error.message);
+          }
+        }
+      });
+    },
+    [findImageNode]
+  );
+  const handleChangeEditor = useCallback(
+    ({ editor, transaction }: any) => {
+      onUpdate(editor);
+      deleteImage(transaction);
+    },
+    [deleteImage, onUpdate]
+  );
 
   const uploadImage = async (files: File[]) => {
     getAuth(app);

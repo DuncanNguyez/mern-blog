@@ -47,15 +47,18 @@ const CommentItem = (props: Props) => {
     getUser();
   }, [userId]);
 
-  const handleChangeComment = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    const text = e.target.value;
-    setComment({
-      postId,
-      replyToId: _id,
-      userId: currentUser?._id,
-      content: { text },
-    });
-  };
+  const handleChangeComment = useCallback(
+    (e: ChangeEvent<HTMLTextAreaElement>) => {
+      const text = e.target.value;
+      setComment({
+        postId,
+        replyToId: _id,
+        userId: currentUser?._id,
+        content: { text },
+      });
+    },
+    [_id, currentUser?._id, postId]
+  );
   const handleReply = useCallback(
     async (e: React.MouseEvent<HTMLButtonElement>) => {
       try {
@@ -80,7 +83,7 @@ const CommentItem = (props: Props) => {
             textareaEle.value = "";
             textareaEle?.focus();
           }
-          setComment(undefined)
+          setComment(undefined);
           return setAddCommentError("");
         }
         if (res.headers.get("Content-type")?.includes("application/json")) {

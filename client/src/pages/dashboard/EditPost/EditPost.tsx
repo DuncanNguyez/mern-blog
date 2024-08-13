@@ -80,13 +80,16 @@ export default function EditPost() {
       }, 1000);
     }
   }, [rerender]);
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     getPost();
-  };
-  const handleChangeTitle = (e: ChangeEvent<HTMLInputElement>) => {
-    dispatch(updateRevisingPost({ title: e.target.value, path } as Post));
-  };
-  const addHashtagsWithButton = () => {
+  }, [getPost]);
+  const handleChangeTitle = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      dispatch(updateRevisingPost({ title: e.target.value, path } as Post));
+    },
+    [dispatch, path]
+  );
+  const addHashtagsWithButton = useCallback(() => {
     const hashtagsInput = document.getElementById(
       "hashtagsInput"
     ) as HTMLInputElement;
@@ -99,61 +102,70 @@ export default function EditPost() {
 
     hashtagsInput.value = "";
     hashtagsInput.focus();
-  };
-  const addHashtagsWithInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.code === "Enter") {
-      const el = e.target as HTMLInputElement;
-      const tags =
-        el.value.trim().length > 0
-          ? el.value.trim().toLowerCase().split(" ")
-          : [];
-      const newHashtags = Array.from(new Set([...hashtags, ...tags]));
-      dispatch(updateRevisingPost({ hashtags: newHashtags, path } as Post));
+  }, [dispatch, hashtags, path]);
+  const addHashtagsWithInput = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.code === "Enter") {
+        const el = e.target as HTMLInputElement;
+        const tags =
+          el.value.trim().length > 0
+            ? el.value.trim().toLowerCase().split(" ")
+            : [];
+        const newHashtags = Array.from(new Set([...hashtags, ...tags]));
+        dispatch(updateRevisingPost({ hashtags: newHashtags, path } as Post));
 
-      el.value = "";
-      el.focus();
-    }
-  };
-  const handleDeleteHashtag = (e: MouseEvent<HTMLElement>) => {
-    const ele = e.target as HTMLElement;
-    const tag = ele.closest("span")?.textContent;
-    const set = new Set(hashtags);
-    set.delete(tag || "");
-    dispatch(updateRevisingPost({ hashtags: Array.from(set), path } as Post));
-  };
-
-  const handleSubmit = async (e: MouseEvent) => {
-    e.preventDefault();
-    const payload = { title, editorDoc: doc, hashtags };
-    dispatch(handleRevisingStart());
-    if (!title || editorRef.current.editor.isEmpty) {
-      return dispatch(updatePostFailure("Invalid title or content"));
-    }
-    if (hashtags.length === 0) {
-      return dispatch(updatePostFailure("Must contain at least one hashtag"));
-    }
-    try {
-      const res = await fetch(`/api/v1/posts/edit/${_id}`, {
-        method: "put",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const contentType = res.headers.get("Content-type");
-        if (contentType === "application/json; charset=utf-8") {
-          const data = await res.json();
-          return dispatch(updatePostFailure(data.message));
-        }
-        return dispatch(updatePostFailure(res.statusText));
+        el.value = "";
+        el.focus();
       }
-      dispatch(updatePostSuccess(path));
-    } catch (error: any) {
-      console.log(error.message);
-      dispatch(updatePostFailure(error.message));
-    }
-  };
+    },
+    [dispatch, hashtags, path]
+  );
+  const handleDeleteHashtag = useCallback(
+    (e: MouseEvent<HTMLElement>) => {
+      const ele = e.target as HTMLElement;
+      const tag = ele.closest("span")?.textContent;
+      const set = new Set(hashtags);
+      set.delete(tag || "");
+      dispatch(updateRevisingPost({ hashtags: Array.from(set), path } as Post));
+    },
+    [dispatch, hashtags, path]
+  );
+
+  const handleSubmit = useCallback(
+    async (e: MouseEvent) => {
+      e.preventDefault();
+      const payload = { title, editorDoc: doc, hashtags };
+      dispatch(handleRevisingStart());
+      if (!title || editorRef.current.editor.isEmpty) {
+        return dispatch(updatePostFailure("Invalid title or content"));
+      }
+      if (hashtags.length === 0) {
+        return dispatch(updatePostFailure("Must contain at least one hashtag"));
+      }
+      try {
+        const res = await fetch(`/api/v1/posts/edit/${_id}`, {
+          method: "put",
+          headers: {
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const contentType = res.headers.get("Content-type");
+          if (contentType === "application/json; charset=utf-8") {
+            const data = await res.json();
+            return dispatch(updatePostFailure(data.message));
+          }
+          return dispatch(updatePostFailure(res.statusText));
+        }
+        dispatch(updatePostSuccess(path));
+      } catch (error: any) {
+        console.log(error.message);
+        dispatch(updatePostFailure(error.message));
+      }
+    },
+    [_id, dispatch, doc, hashtags, path, title]
+  );
 
   return (
     <div className="max-w-4xl w-full mx-auto p-3 min-h-screen">

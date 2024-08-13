@@ -48,7 +48,7 @@ export default function MyPosts() {
       getPosts();
     }
   };
-  const handleDeletePost = async () => {
+  const handleDeletePost = useCallback(async () => {
     setShowModal(false);
     try {
       const res = await fetch(`/api/v1/posts/user/${deleteId}`, {
@@ -69,7 +69,7 @@ export default function MyPosts() {
     } catch (error: any) {
       console.log(error.message);
     }
-  };
+  }, [deleteId, posts]);
   return (
     <div className="table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
       {posts?.length ? (

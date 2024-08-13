@@ -6,7 +6,13 @@ import {
   Spinner,
   TextInput,
 } from "flowbite-react";
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -31,47 +37,50 @@ export default function SignUp() {
     }
   });
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.id]:
         e.target.type === "checkbox" ? e.target.checked : e.target.value.trim(),
     }));
-  };
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    dispatch(signInStart());
-    const { username, email, password } = formData;
-    if (!username || !email || !password) {
-      return dispatch(signInFailure("Please fill out all fields "));
-    }
-    const auth = getAuth(app);
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-    } catch (error: any) {
-      return dispatch(signInFailure(error.message));
-    }
-
-    try {
-      const res = await fetch("/api/v1/auth/sign-up", {
-        method: "post",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        dispatch(signInSuccess(data));
-        return navigate("/home");
+  }, []);
+  const handleSubmit = useCallback(
+    async (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      dispatch(signInStart());
+      const { username, email, password } = formData;
+      if (!username || !email || !password) {
+        return dispatch(signInFailure("Please fill out all fields "));
       }
-      return dispatch(signInFailure(data.message));
-    } catch (error: any) {
-      auth.currentUser?.delete();
-      return dispatch(signInFailure(error.message));
-    }
-  };
+      const auth = getAuth(app);
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } catch (error: any) {
+        return dispatch(signInFailure(error.message));
+      }
+
+      try {
+        const res = await fetch("/api/v1/auth/sign-up", {
+          method: "post",
+          headers: {
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          dispatch(signInSuccess(data));
+          return navigate("/home");
+        }
+        return dispatch(signInFailure(data.message));
+      } catch (error: any) {
+        auth.currentUser?.delete();
+        return dispatch(signInFailure(error.message));
+      }
+    },
+    [dispatch, formData, navigate]
+  );
   return (
     <div className="min-h-screen mt-10">
       <div className=" gap-5 flex flex-col md:flex-row md:items-center p-3 max-w-3xl mx-auto ">

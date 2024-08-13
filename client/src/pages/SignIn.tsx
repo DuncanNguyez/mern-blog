@@ -1,5 +1,11 @@
 import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -28,35 +34,38 @@ export default function SignIn() {
     }
   });
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value.trim() }));
-  };
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const { username, password } = formData;
-    if (!username || !password) {
-      return dispatch(signInFailure("Please fill out all fields "));
-    }
-    try {
-      dispatch(signInStart());
-      const res = await fetch("/api/v1/auth/sign-in", {
-        method: "post",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (data.success === false) {
-        return dispatch(signInFailure(data.message));
+  }, []);
+  const handleSubmit = useCallback(
+    async (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const { username, password } = formData;
+      if (!username || !password) {
+        return dispatch(signInFailure("Please fill out all fields "));
       }
-      dispatch(signInSuccess(data));
-      await signInWithEmailAndPassword(getAuth(app), data.email, password);
-      navigate("/home");
-    } catch (error: any) {
-      dispatch(signInFailure(error.message));
-    }
-  };
+      try {
+        dispatch(signInStart());
+        const res = await fetch("/api/v1/auth/sign-in", {
+          method: "post",
+          headers: {
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+        const data = await res.json();
+        if (data.success === false) {
+          return dispatch(signInFailure(data.message));
+        }
+        dispatch(signInSuccess(data));
+        await signInWithEmailAndPassword(getAuth(app), data.email, password);
+        navigate("/home");
+      } catch (error: any) {
+        dispatch(signInFailure(error.message));
+      }
+    },
+    [dispatch, formData, navigate]
+  );
   return (
     <div className="min-h-screen mt-10">
       <div className=" gap-5 flex flex-col md:flex-row md:items-center p-3 max-w-3xl mx-auto ">

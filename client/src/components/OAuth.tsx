@@ -5,13 +5,14 @@ import { app } from "../firebase.ts";
 import { signInFailure, signInSuccess } from "../redux/user/userSlice.ts";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
 
 export default function OAuth() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const auth = getAuth(app);
 
-  const handleGoogleClick = async () => {
+  const handleGoogleClick = useCallback(async () => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({
       prompt: "select_account",
@@ -39,7 +40,7 @@ export default function OAuth() {
     } catch (error: any) {
       dispatch(signInFailure(error.message));
     }
-  };
+  }, [auth, dispatch, navigate]);
 
   return (
     <Button
