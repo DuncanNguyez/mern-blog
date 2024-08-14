@@ -72,19 +72,23 @@ export default function Profile() {
         return dispatch(updateFailure(error.message));
       }
       try {
-        const res = await fetch(`/api/v1/user/update/${currentUser._id}`, {
+        const res = await fetch(`/api/v1/users/update/${currentUser._id}`, {
           method: "put",
           headers: {
             "Content-type": "application/json",
           },
           body: JSON.stringify(formData),
         });
-        const data = await res.json();
-        if (!res.ok) {
+        if (res.ok) {
+          const data = await res.json();
+          dispatch(updateSuccess(data));
+          return setUpdateUserSuccess(true);
+        }
+        if (res.headers.get("Content-type")?.includes("application/json")) {
+          const data = await res.json();
           return dispatch(updateFailure(data.message));
         }
-        dispatch(updateSuccess(data));
-        setUpdateUserSuccess(true);
+        return dispatch(updateFailure(res.statusText));
       } catch (error: any) {
         dispatch(updateFailure(error.message));
       }
