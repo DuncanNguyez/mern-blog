@@ -28,6 +28,7 @@ export default function EditPost() {
   const dispatch = useDispatch();
   const [success, setSuccess] = useState(false);
   const [rerender, setRerender] = useState(false);
+  const { currentUser } = useSelector((state: any) => state.user);
   const editorRef = useRef<any>();
   const { loading, error, posts } = useSelector(
     (state: RootState) => state.revising
@@ -143,7 +144,7 @@ export default function EditPost() {
         return dispatch(updatePostFailure("Must contain at least one hashtag"));
       }
       try {
-        const res = await fetch(`/api/v1/posts/edit/${_id}`, {
+        const res = await fetch(`/api/v1/${currentUser._id}/posts/${_id}`, {
           method: "put",
           headers: {
             "Content-type": "application/json",
@@ -164,7 +165,7 @@ export default function EditPost() {
         dispatch(updatePostFailure(error.message));
       }
     },
-    [_id, dispatch, doc, hashtags, path, title]
+    [_id, currentUser._id, dispatch, doc, hashtags, path, title]
   );
 
   return (

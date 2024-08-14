@@ -7,6 +7,7 @@ import removeDiacritics from "../utils/removeDiacritics";
 import { postValidation } from "../utils/validation";
 import { CusRequest } from "./auth.controller";
 import { FilterQuery } from "mongoose";
+import { errorHandler } from "../utils/error";
 
 const { find } = lodash;
 
@@ -49,7 +50,10 @@ const getPostsByUser = async (
   next: NextFunction
 ) => {
   try {
-    const id = (req as CusRequest).user._id;
+    const { id } = req.params;
+    if (id !== (req as CusRequest).user._id) {
+      return next(errorHandler(403, "Access is not allowed"));
+    }
     const { skip, limit } = req.query;
     const fields = req.query.fields as string;
     let projection = {};
@@ -71,43 +75,17 @@ const getPostsByUser = async (
     next(error);
   }
 };
-const getPostByUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { path } = req.params;
-    const { userId } = (req as CusRequest).user;
-    const fields = req.query.fields as string;
-    let projection = {};
-    if (fields?.length) {
-      fields
-        .trim()
-        .split(",")
-        .forEach((field) => {
-          projection = { ...projection, [field]: 1 };
-        });
-    }
-    const post = await Post.findOne(
-      { path, authorId: userId },
-      projection
-    ).lean();
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
-    }
-    return res.status(200).json(post);
-  } catch (error) {
-    next(error);
-  }
-};
+
 const deletePostByUser = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { id } = req.params;
+    const { id, userId } = req.params;
+    if (userId !== (req as CusRequest).user._id) {
+      return next(errorHandler(403, "Access is not allowed"));
+    }
     const post = await Post.findOneAndDelete({
       _id: id,
       authorId: (req as CusRequest).user._id,
@@ -126,8 +104,11 @@ const editPostByUser = async (
   next: NextFunction
 ) => {
   const { title, editorDoc: doc, hashtags } = req.body;
-  const { id } = req.params;
+  const { id, userId } = req.params;
   const authorId = (req as CusRequest).user._id;
+  if (userId !== authorId) {
+    return next(errorHandler(403, "Access is not allowed"));
+  }
   const validated = postValidation({
     post: { title, doc, authorId, hashtags } as IPost,
   });
@@ -149,7 +130,6 @@ export {
   createPostByUser,
   getPost,
   getPostsByUser,
-  getPostByUser,
   deletePostByUser,
   editPostByUser,
 };

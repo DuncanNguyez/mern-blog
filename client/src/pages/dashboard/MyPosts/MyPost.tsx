@@ -4,6 +4,7 @@ import { CiEdit } from "react-icons/ci";
 import { Alert, Button, Modal, Table } from "flowbite-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function MyPosts() {
   const limit = 20;
@@ -13,11 +14,11 @@ export default function MyPosts() {
   const [showModal, setShowModal] = useState(false);
   const [deleteId, setDeleteId] = useState();
   const [isMore, setIsMore] = useState(true);
-
+  const { currentUser } = useSelector((state: any) => state.user);
   const getPosts = useCallback(async () => {
     try {
       const res = await fetch(
-        `/api/v1/posts/user?fields=title,path,createdAt&limit=${limit}&skip=${skip}`
+        `/api/v1/users/${currentUser._id}posts/?fields=title,path,createdAt&limit=${limit}&skip=${skip}`
       );
       if (res.ok) {
         const data = await res.json();
@@ -36,7 +37,7 @@ export default function MyPosts() {
     } catch (error: any) {
       setError(error.message);
     }
-  }, [limit, skip]);
+  }, [currentUser._id, skip]);
 
   useEffect(() => {
     if (!posts && !error) {
@@ -51,7 +52,7 @@ export default function MyPosts() {
   const handleDeletePost = useCallback(async () => {
     setShowModal(false);
     try {
-      const res = await fetch(`/api/v1/posts/user/${deleteId}`, {
+      const res = await fetch(`/api/v1/${currentUser._id}/posts/${deleteId}`, {
         method: "delete",
       });
       if (res.ok) {
@@ -69,7 +70,7 @@ export default function MyPosts() {
     } catch (error: any) {
       console.log(error.message);
     }
-  }, [deleteId, posts]);
+  }, [currentUser._id, deleteId, posts]);
   return (
     <div className="table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
       {posts?.length ? (

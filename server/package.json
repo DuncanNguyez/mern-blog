@@ -19,7 +19,9 @@
     "lodash": "^4.17.21",
     "mongoose": "^8.5.1",
     "nodemon": "^3.1.4",
-    "server": "file:"
+    "server": "file:",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
@@ -27,6 +29,8 @@
     "@types/cookie-parser": "^1.4.7",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/lodash": "^4.17.7",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.6",
     "eslint": "^9.9.0",
     "globals": "^15.9.0",
     "ts-node": "^10.9.2",

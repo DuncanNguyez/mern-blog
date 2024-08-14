@@ -94,7 +94,7 @@ export default function CreatePost() {
         return dispatch(submitPostFailure("Must contain at least one hashtag"));
       }
       try {
-        const res = await fetch("/api/v1/posts/create", {
+        const res = await fetch("/api/v1/posts", {
           method: "post",
           headers: {
             "Content-type": "application/json",

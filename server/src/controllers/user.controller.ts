@@ -10,9 +10,9 @@ import { CusRequest } from "./auth.controller";
 const { find } = lodash;
 const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.params;
+    const { id } = req.params;
     const user = (req as CusRequest).user;
-    if (userId !== user._id) {
+    if (id !== user._id) {
       return next(errorHandler(403, "Access is not allowed"));
     }
     const { body } = req;
@@ -40,11 +40,11 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
 };
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.params;
-    if (userId !== (req as CusRequest).user._id) {
+    const { id } = req.params;
+    if (id !== (req as CusRequest).user._id) {
       return next(errorHandler(403, "Access is not allowed"));
     }
-    await User.findByIdAndDelete(userId);
+    await User.findByIdAndDelete(id);
     return res
       .status(204)
       .json({ success: true, message: "User has been deleted" });
