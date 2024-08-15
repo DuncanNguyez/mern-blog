@@ -58,7 +58,11 @@ const getCommentsByPost = async (
         ...(onlyRoot ? { replyToId: { $exists: false } } : {}),
       },
       {},
-      { skip, limit, sort: { createdAt: -1 } } as FilterQuery<IComment>
+      {
+        sort: { voteNumber: -1, createdAt: -1 },
+        skip,
+        limit,
+      } as FilterQuery<IComment>
     ).lean();
     if (comments?.length > 0) {
       return res.status(200).json(comments);
@@ -82,7 +86,11 @@ const getCommentsByComment = async (
         replyToId,
       },
       {},
-      { skip, limit, sort: { createdAt: -1 } } as FilterQuery<IComment>
+      {
+        sort: { voteNumber: -1, createdAt: -1 },
+        skip,
+        limit,
+      } as FilterQuery<IComment>
     ).lean();
     if (comments?.length > 0) {
       return res.status(200).json(comments);
@@ -92,9 +100,72 @@ const getCommentsByComment = async (
     next(error);
   }
 };
+const upVoteComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const cReq = req as CusRequest;
+    const id = req.params.id;
+    const comment = await Comment.findByIdAndUpdate(id).lean();
+    const upVoted = comment?.vote?.some((id) => id === cReq.user._id);
+    const downVoted = comment?.down?.some((id) => id === cReq.user._id);
+    const commentUpdated = await Comment.findByIdAndUpdate(
+      id,
+      {
+        $inc: {
+          voteNumber: upVoted ? -1 : 1,
+          ...(downVoted ? { downNumber: -1 } : {}),
+        },
+        ...(upVoted
+          ? { $pull: { vote: cReq.user._id } }
+          : { $addToSet: { vote: cReq.user._id } }),
+        ...(downVoted ? { $pull: { down: cReq.user._id } } : {}),
+      },
+      { new: true }
+    );
+    return res.status(200).json(commentUpdated);
+  } catch (error) {
+    next(error);
+  }
+};
+const downVoteComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const cReq = req as CusRequest;
+    const id = req.params.id;
+    const comment = await Comment.findByIdAndUpdate(id).lean();
+    const upVoted = comment?.vote?.some((id) => id === cReq.user._id);
+    const downVoted = comment?.down?.some((id) => id === cReq.user._id);
+    const commentUpdated = await Comment.findByIdAndUpdate(
+      id,
+      {
+        $inc: {
+          downNumber: downVoted ? -1 : 1,
+          ...(upVoted ? { voteNumber: -1 } : {}),
+        },
+        ...(downVoted
+          ? { $pull: { down: cReq.user._id } }
+          : { $addToSet: { down: cReq.user._id } }),
+        ...(upVoted ? { $pull: { vote: cReq.user._id } } : {}),
+      },
+      { new: true }
+    );
+    return res.status(200).json(commentUpdated);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   createCommentByUser,
   deleteCommentByUser,
   getCommentsByPost,
   getCommentsByComment,
+  upVoteComment,
+  downVoteComment,
 };
