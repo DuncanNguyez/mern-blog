@@ -1,0 +1,10 @@
+type: object
+properties:
+  _id:
+    type: string
+  username:
+    type: string
+  email:
+    type: email
+  createdAt:
+    type: string-time

@@ -2,13 +2,14 @@ import express, { NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import cookieParser from "cookie-parser";
+import path from "path";
 
 import connectDb from "./utils/connectDb";
 import userRouter from "./routes/user.route";
 import authRouter from "./routes/auth.route";
 import postRouter from "./routes/post.route";
 import commentRouter from "./routes/comment.route";
-import { swaggerSpec } from "./swagger";
+import { swaggerDocument } from "./swagger";
 
 dotenv.config();
 connectDb();
@@ -20,8 +21,8 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/posts", postRouter);
 app.use("/api/v1/comments", commentRouter);
-
-app.use("/docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));
+app.use(express.static(path.join(__dirname, "swagger/resource")));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.debug(err);

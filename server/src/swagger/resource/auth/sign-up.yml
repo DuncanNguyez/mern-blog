@@ -1,0 +1,32 @@
+post:
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+            email:
+              type: email
+            password:
+              type: string
+            isAuthor:
+              type: boolean
+              default: false
+        example:
+          username: username1
+          email: username1@gmail.com
+          password: password
+          isAuthor: true
+  responses:
+    "200":
+      content:
+        application/json:
+          schema:
+            $ref: ../components/user.yml
+      headers:
+        access_token:
+          description: jwt
+          type: apiKey
