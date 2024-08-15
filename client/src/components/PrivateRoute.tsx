@@ -2,10 +2,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router-dom";
 import { RootState } from "../redux/store";
 import { useEffect, useState } from "react";
-import { signOutSuccess } from "../redux/user/userSlice";
+import { signOutSuccess, User } from "../redux/user/userSlice";
 
 export default function PrivateRoute() {
-  const { currentUser } = useSelector((state: RootState) => state.user);
+  const currentUser: User = useSelector(
+    (state: RootState) => state.user
+  ).currentUser;
 
   const [authenticated, setAuthenticated] = useState<boolean>(true);
   const dispatch = useDispatch();
@@ -15,11 +17,21 @@ export default function PrivateRoute() {
       if (res.ok) {
         return setAuthenticated(true);
       }
+      const resRefresh = await fetch(`/api/v1/auth/`, {
+        method: "post",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({ refreshToken: currentUser.refreshToken }),
+      });
+      if (resRefresh.ok) {
+        return setAuthenticated(true);
+      }
       dispatch(signOutSuccess());
 
       return setAuthenticated(false);
     };
     checkAuth();
-  }, [dispatch]);
+  }, [currentUser.refreshToken, dispatch]);
   return currentUser && authenticated ? <Outlet /> : <Navigate to="/sign-in" />;
 }

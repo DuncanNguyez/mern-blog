@@ -6,6 +6,7 @@ import { Request, Response, NextFunction } from "express";
 import User, { IUser } from "../models/user.model";
 import { errorHandler } from "../utils/error";
 import { userValidation } from "../utils/validation";
+import getTokens from "../utils/getTokens";
 
 const { find } = lodash;
 
@@ -27,10 +28,11 @@ const signup = async (req: Request, res: Response, next: NextFunction) => {
     });
     const doc = user._doc;
     delete doc.password;
-    const token = jwt.sign(
-      { _id: doc._id, isAuthor: doc.isAuthor },
-      process.env.JWT_SECRET as string
-    );
+    const { token, refreshToken } = getTokens({
+      _id: doc._id,
+      isAuthor: doc.isAuthor,
+    });
+    doc.refreshToken = refreshToken;
     return res
       .status(200)
       .cookie("access_token", token, { httpOnly: true })
@@ -55,11 +57,13 @@ const signin = async (req: Request, res: Response, next: NextFunction) => {
     if (!validPw) {
       return next(errorHandler(400, "Invalid password"));
     }
-    const token = jwt.sign(
-      { _id: user._id, isAuthor: user.isAuthor },
-      process.env.JWT_SECRET as string
-    );
+    const { token, refreshToken } = getTokens({
+      _id: user._id,
+      isAuthor: user.isAuthor,
+    });
+
     delete user.password;
+    user.refreshToken = refreshToken;
     res
       .status(200)
       .cookie("access_token", token, { httpOnly: true })
@@ -73,10 +77,13 @@ const googleAuth = async (req: Request, res: Response) => {
   const { email, imageUrl } = req.body;
   const user = await User.findOne({ email }).lean();
   if (user) {
-    const token = jwt.sign(
-      { _id: user._id, isAuthor: user.isAuthor },
-      process.env.JWT_SECRET as string
-    );
+    const { token, refreshToken } = getTokens({
+      _id: user._id,
+      isAuthor: user.isAuthor,
+    });
+
+    delete user.password;
+    user.refreshToken = refreshToken;
     delete user.password;
     return res
       .status(200)
@@ -92,11 +99,13 @@ const googleAuth = async (req: Request, res: Response) => {
     email,
     imageUrl,
   });
-  const token = jwt.sign(
-    { _id: newUser._id, isAuthor: newUser.isAuthor },
-    process.env.JWT_SECRET as string
-  );
+  const { token, refreshToken } = getTokens({
+    _id: newUser._id,
+    isAuthor: newUser.isAuthor,
+  });
+
   const doc = newUser._doc;
+  doc.refreshToken = refreshToken;
   delete doc.password;
 
   return res
@@ -118,6 +127,35 @@ const protect = async (req: Request, res: Response, next: NextFunction) => {
       }
       (req as CusRequest).user = payload;
       return next();
+    }
+  );
+};
+
+const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const token = req.body.refreshToken;
+  if (!token) {
+    return next(errorHandler(404, "token not found"));
+  }
+  jwt.verify(
+    token,
+    process.env.JWT_SECRET as string,
+    (err: any, payload: any) => {
+      if (err) {
+        return next(errorHandler(401, "Unauthorized"));
+      }
+      delete payload.exp;
+      delete payload.iat;
+      const newToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
+        expiresIn: "1h",
+      });
+      return res
+        .status(200)
+        .cookie("access_token", newToken, { httpOnly: true })
+        .end();
     }
   );
 };
@@ -146,4 +184,12 @@ const signout = (req: Request, res: Response, next: NextFunction) => {
 export interface CusRequest extends Request {
   user: IUser;
 }
-export { signin, signup, googleAuth, protect, authorProtect, signout };
+export {
+  signin,
+  signup,
+  googleAuth,
+  protect,
+  authorProtect,
+  signout,
+  refreshToken,
+};
