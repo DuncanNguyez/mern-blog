@@ -1,7 +1,7 @@
 import { Timeline } from "flowbite-react";
 import { RiPlayListAddLine } from "react-icons/ri";
 import { RxDotsHorizontal } from "react-icons/rx";
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { IComment } from "./Comments";
 import CommentItem from "./CommentItem";
 
@@ -12,8 +12,8 @@ type Props = {
   commentsNow: Array<IComment>;
 };
 
-const CommentTree = (props: Props) => {
-  const [comments, setComments] = useState<Array<IComment>>([]);
+const CommentTree = memo((props: Props) => {
+  const [comments, setComments] = useState<Array<IComment>>();
   const [error, setError] = useState<string>();
   const { postId, commentsNow, replyToId } = props;
   const [limit, setLimit] = useState<number>(3);
@@ -36,7 +36,7 @@ const CommentTree = (props: Props) => {
         }
         setLimit(limit + 1);
         setSkip(skip + limit);
-        return setComments([...comments, ...data]);
+        return setComments([...(comments || []), ...data]);
       }
       if (res.headers.get("Content-type")?.includes("application/json")) {
         const data = await res.json();
@@ -49,9 +49,10 @@ const CommentTree = (props: Props) => {
   }, [comments, limit, postId, replyToId, skip]);
 
   // call only one
+  console.log("object");
   useEffect(() => {
-    if (comments.length === 0) getComments();
-  }, [comments.length, getComments]);
+    if (!comments) getComments();
+  }, [comments, getComments]);
 
   const handleViewMore = useCallback(() => {
     getComments();
@@ -65,9 +66,8 @@ const CommentTree = (props: Props) => {
           commentsNow.reverse().map((comment) => {
             return <CommentItem key={comment._id} comment={comment} />;
           })}
-        {comments.length !== 0 &&
-          !error &&
-          comments.map((comment) => {
+        {!error &&
+          comments?.map((comment) => {
             return <CommentItem key={comment._id} comment={comment} />;
           })}
         {isMore && (
@@ -79,5 +79,5 @@ const CommentTree = (props: Props) => {
       </Timeline>
     </div>
   );
-};
+});
 export default CommentTree;

@@ -16,9 +16,26 @@ interface IUser {
 }
 
 const CommentItem = (props: Props) => {
-  const { _id, postId, userId, voteNumber, downNumber, content, createdAt } =
-    props.comment;
-
+  const {
+    _id,
+    postId,
+    userId,
+    voteNumber,
+    downNumber,
+    content,
+    createdAt,
+    vote,
+    down,
+  } = props.comment;
+  const currentUser: User = useSelector((state: any) => state.user).currentUser;
+  const [upVoted, setUpVoted] = useState<boolean>(
+    vote?.some((id) => id === currentUser._id) || false
+  );
+  const [downVoted, setDownVoted] = useState<boolean>(
+    down?.some((id) => id === currentUser._id) || false
+  );
+  const [voteNum, setVoteNum] = useState<number>(voteNumber || 0);
+  const [downNum, setDownNum] = useState<number>(downNumber || 0);
   const [error, setError] = useState<string>();
   const [user, setUser] = useState<IUser>();
   const [showTextEditor, setShowTextEditor] = useState<boolean>(false);
@@ -26,7 +43,6 @@ const CommentItem = (props: Props) => {
   const [commentsNow, setCommentsNow] = useState<Array<IComment>>([]);
   const [addCommentError, setAddCommentError] = useState<string>();
 
-  const currentUser: User = useSelector((state: any) => state.user).currentUser;
   useEffect(() => {
     const getUser = async () => {
       try {
@@ -112,6 +128,37 @@ const CommentItem = (props: Props) => {
       });
     }, 500);
   }, [showTextEditor]);
+
+  const handleUpVote = useCallback(async () => {
+    const res = await fetch(`/api/v1/comments/${_id}/vote`, { method: "post" });
+    if (res.ok) {
+      const data: IComment = await res.json();
+      setDownVoted(data.down?.some((id) => id === currentUser._id) || false);
+      setDownNum(data?.downNumber || 0);
+      setUpVoted(data.vote?.some((id) => id === currentUser._id) || false);
+      setVoteNum(data?.voteNumber || 0);
+    }
+    if (res.status === 401) {
+      alert("You need to login in to vote");
+    }
+  }, [_id, currentUser._id]);
+
+  const handleDownVote = useCallback(async () => {
+    const res = await fetch(`/api/v1/comments/${_id}/vote`, {
+      method: "delete",
+    });
+    if (res.ok) {
+      const data: IComment = await res.json();
+      setDownVoted(data.down?.some((id) => id === currentUser._id) || false);
+      setDownNum(data?.downNumber || 0);
+      setUpVoted(data.vote?.some((id) => id === currentUser._id) || false);
+      setVoteNum(data?.voteNumber || 0);
+    }
+    if (res.status === 401) {
+      alert("You need to login in to vote");
+    }
+  }, [_id, currentUser._id]);
+
   return (
     <>
       {!error && (
@@ -132,16 +179,26 @@ const CommentItem = (props: Props) => {
             <Timeline.Body>{content.text}</Timeline.Body>
             <div className="flex gap-10 items-center m-2">
               <div className="flex gap-2">
-                <span className="hover:bg-gray-400 hover:text-purple-700  cursor-pointer p-1  rounded-full">
+                <span
+                  onClick={handleUpVote}
+                  className={`${
+                    upVoted ? "bg-gray-400 text-purple-800" : ""
+                  } hover:bg-gray-400 hover:text-purple-800  cursor-pointer p-1  rounded-full`}
+                >
                   <BiUpvote className="size-6 cursor-pointer" />
                 </span>
-                <span>{voteNumber || 0}</span>
+                <span>{voteNum}</span>
               </div>
               <div className="flex gap-2">
-                <span className="hover:bg-gray-400 hover:text-purple-700  cursor-pointer p-1  rounded-full">
+                <span
+                  onClick={handleDownVote}
+                  className={`${
+                    downVoted ? "bg-gray-400 text-purple-800" : ""
+                  } hover:bg-gray-400 hover:text-purple-800  cursor-pointer p-1  rounded-full`}
+                >
                   <BiDownvote className="size-6 cursor-pointer " />
                 </span>
-                <span>{downNumber || 0}</span>
+                <span>{downNum}</span>
               </div>
               <div>
                 <span
