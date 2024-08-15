@@ -18,7 +18,7 @@ export default function MyPosts() {
   const getPosts = useCallback(async () => {
     try {
       const res = await fetch(
-        `/api/v1/users/${currentUser._id}posts/?fields=title,path,createdAt&limit=${limit}&skip=${skip}`
+        `/api/v1/users/${currentUser._id}/posts/?fields=title,path,createdAt&limit=${limit}&skip=${skip}`
       );
       if (res.ok) {
         const data = await res.json();
@@ -52,7 +52,7 @@ export default function MyPosts() {
   const handleDeletePost = useCallback(async () => {
     setShowModal(false);
     try {
-      const res = await fetch(`/api/v1/${currentUser._id}/posts/${deleteId}`, {
+      const res = await fetch(`/api/v1/users/${currentUser._id}/posts/${deleteId}`, {
         method: "delete",
       });
       if (res.ok) {
