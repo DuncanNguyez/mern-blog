@@ -4,6 +4,16 @@
 html {
   scroll-behavior: smooth;
 }
+
+.dark div::-webkit-scrollbar {
+  width: 8px;
+  background-color: #2e2e4b;
+}
+
+.dark div::-webkit-scrollbar-thumb {
+  background-color: #555;
+}
+
 .bn-container > div:nth-child(1) {
   min-height: 300px;
 }

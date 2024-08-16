@@ -20,13 +20,22 @@ export default function TOC() {
       });
     setToc(toc);
   }, 500);
-  const handleChangeHash = useCallback(() => {
-    setTimeout(() => {
-      setHashPath(location.hash.replace("#", ""));
-    }, 200);
+  const handleChangeHash = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    const ele = e.target as HTMLElement;
+    const hash = ele.closest("a")?.href.replace(/.*#/, "") || "";
+    setHashPath(hash);
+    location.hash = hash;
+    const title = document.getElementById(hash);
+    if (title) {
+      window.scrollTo({
+        top: hash == "title" ? 0 : title?.offsetTop + 210,
+        behavior: "smooth",
+      });
+    }
+    e.preventDefault();
   }, []);
   return (
-    <Sidebar className="h-screen top-0 sticky sidebar" id="">
+    <Sidebar className="h-screen top-[66px] sticky sidebar" id="">
       <Sidebar.ItemGroup id="nav-post">
         {toc.map(({ id, title, level }, index) => {
           return (

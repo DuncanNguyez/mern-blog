@@ -26,7 +26,7 @@ export default function Header() {
     }
   }, [dispatch, navigate]);
   return (
-    <Navbar className="border-b-2">
+    <Navbar id="header" className="border-b-2 sticky top-0 z-50">
       <Link
         to="/home"
         className="self-center whitespace-nowrap text-sm sm:text-xl font-semibold dark:text-white"
