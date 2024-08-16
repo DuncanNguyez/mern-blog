@@ -108,7 +108,7 @@ const upVoteComment = async (
   try {
     const cReq = req as CusRequest;
     const id = req.params.id;
-    const comment = await Comment.findByIdAndUpdate(id).lean();
+    const comment = await Comment.findById(id).lean();
     const upVoted = comment?.vote?.some((id) => id === cReq.user._id);
     const downVoted = comment?.down?.some((id) => id === cReq.user._id);
     const commentUpdated = await Comment.findByIdAndUpdate(
@@ -138,7 +138,7 @@ const downVoteComment = async (
   try {
     const cReq = req as CusRequest;
     const id = req.params.id;
-    const comment = await Comment.findByIdAndUpdate(id).lean();
+    const comment = await Comment.findById(id).lean();
     const upVoted = comment?.vote?.some((id) => id === cReq.user._id);
     const downVoted = comment?.down?.some((id) => id === cReq.user._id);
     const commentUpdated = await Comment.findByIdAndUpdate(

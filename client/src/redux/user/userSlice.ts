@@ -6,6 +6,7 @@ export interface User {
   imageUrl: string;
   isAuthor: boolean;
   password: string;
+  bookmarks?: Array<string>;
   refreshToken: string;
 }
 interface UserState {

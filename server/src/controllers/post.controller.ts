@@ -23,7 +23,7 @@ const createPostByUser = async (
     "-" +
     generateRandomString(10).toLowerCase();
   const validated = postValidation({
-    post: { title, path, doc, authorId: authorId as string, hashtags },
+    post: { title, path, doc, authorId: authorId, hashtags } as IPost,
   });
   const message = find(validated, (item) => item != false);
   if (message) {
@@ -126,10 +126,69 @@ const editPostByUser = async (
     next(error);
   }
 };
+const upVotePost = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const cReq = req as CusRequest;
+    const id = req.params.id;
+    const post = await Post.findById(id).lean();
+    const upVoted = post?.vote?.some((id) => id === cReq.user._id);
+    const downVoted = post?.down?.some((id) => id === cReq.user._id);
+    const postUpdated = await Post.findByIdAndUpdate(
+      id,
+      {
+        $inc: {
+          voteNumber: upVoted ? -1 : 1,
+          ...(downVoted ? { downNumber: -1 } : {}),
+        },
+        ...(upVoted
+          ? { $pull: { vote: cReq.user._id } }
+          : { $addToSet: { vote: cReq.user._id } }),
+        ...(downVoted ? { $pull: { down: cReq.user._id } } : {}),
+      },
+      { new: true, projection: { doc: false } }
+    );
+    return res.status(200).json(postUpdated);
+  } catch (error) {
+    next(error);
+  }
+};
+const downVotePost = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const cReq = req as CusRequest;
+    const id = req.params.id;
+    const post = await Post.findById(id).lean();
+    const upVoted = post?.vote?.some((id) => id === cReq.user._id);
+    const downVoted = post?.down?.some((id) => id === cReq.user._id);
+    const postUpdated = await Post.findByIdAndUpdate(
+      id,
+      {
+        $inc: {
+          downNumber: downVoted ? -1 : 1,
+          ...(upVoted ? { voteNumber: -1 } : {}),
+        },
+        ...(downVoted
+          ? { $pull: { down: cReq.user._id } }
+          : { $addToSet: { down: cReq.user._id } }),
+        ...(upVoted ? { $pull: { vote: cReq.user._id } } : {}),
+      },
+      { new: true, projection: { doc: false } }
+    );
+    return res.status(200).json(postUpdated);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   createPostByUser,
   getPost,
   getPostsByUser,
   deletePostByUser,
   editPostByUser,
+  upVotePost,
+  downVotePost,
 };

@@ -41,7 +41,7 @@ export default function TOC() {
           return (
             <a onClick={handleChangeHash} key={index} href={`#${id}`}>
               <Sidebar.Item
-                className="block overflow-hidden p-1.5 rounded-none"
+                className="block truncate overflow-hidden p-1.5 rounded-none"
                 active={hashPath === id}
                 as="div"
               >

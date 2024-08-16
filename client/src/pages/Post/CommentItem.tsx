@@ -1,4 +1,9 @@
-import { BiUpvote, BiDownvote } from "react-icons/bi";
+import {
+  BiUpvote,
+  BiSolidUpvote,
+  BiDownvote,
+  BiSolidDownvote,
+} from "react-icons/bi";
 import { Alert, Button, Timeline } from "flowbite-react";
 import { IComment } from "./Comments";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
@@ -184,10 +189,14 @@ const CommentItem = (props: Props) => {
                 <span
                   onClick={handleUpVote}
                   className={`${
-                    upVoted ? "bg-gray-400 text-purple-800" : ""
-                  } hover:bg-gray-400 hover:text-purple-800  cursor-pointer p-1  rounded-full`}
+                    upVoted ? "text-orange-600" : ""
+                  } hover:bg-[#66625e45] hover:text-orange-600  cursor-pointer p-1  rounded-full`}
                 >
-                  <BiUpvote className="size-6 cursor-pointer" />
+                  {upVoted ? (
+                    <BiSolidUpvote className="size-6" />
+                  ) : (
+                    <BiUpvote className="size-6" />
+                  )}
                 </span>
                 <span>{voteNum}</span>
               </div>
@@ -195,10 +204,14 @@ const CommentItem = (props: Props) => {
                 <span
                   onClick={handleDownVote}
                   className={`${
-                    downVoted ? "bg-gray-400 text-purple-800" : ""
-                  } hover:bg-gray-400 hover:text-purple-800  cursor-pointer p-1  rounded-full`}
+                    downVoted ? " text-purple-800" : ""
+                  } hover:bg-[#66625e45] hover:text-purple-600  cursor-pointer p-1  rounded-full`}
                 >
-                  <BiDownvote className="size-6 cursor-pointer " />
+                  {downVoted ? (
+                    <BiSolidDownvote className="size-6" />
+                  ) : (
+                    <BiDownvote className="size-6" />
+                  )}
                 </span>
                 <span>{downNum}</span>
               </div>

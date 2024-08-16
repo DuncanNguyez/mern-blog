@@ -5,6 +5,12 @@ export interface IPost {
   doc: any;
   authorId: string;
   hashtags: Array<string>;
+  vote?: Array<string>;
+  voteNumber: number;
+  down?: Array<string>;
+  downNumber: number;
+  bookmarks?: Array<string>;
+  bookmarkNumber?: number;
   [key: string]: any;
 }
 const postSchema = new Schema<IPost>(
@@ -14,6 +20,12 @@ const postSchema = new Schema<IPost>(
     doc: { type: Object, required: true },
     authorId: { type: String, required: true },
     hashtags: [String],
+    vote: [String],
+    voteNumber: { type: Number, default: 0 },
+    down: [String],
+    downNumber: { type: Number, default: 0 },
+    bookmarks: [String],
+    bookmarkNumber: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

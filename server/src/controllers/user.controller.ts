@@ -6,6 +6,8 @@ import User from "../models/user.model";
 import { errorHandler } from "../utils/error";
 import { userValidation } from "../utils/validation";
 import { CusRequest } from "./auth.controller";
+import Post from "../models/post.model";
+import mongoose from "mongoose";
 
 const { find } = lodash;
 const updateUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -61,10 +63,46 @@ const getUser = async (req: Request, res: Response, next: NextFunction) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    delete user.password
+    delete user.password;
     return res.status(200).json(user);
   } catch (error) {
     next(error);
   }
 };
-export { updateUser, deleteUser ,getUser};
+
+const bookmarkPost = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const cReq = req as CusRequest;
+  const userId = cReq.user._id;
+  if (userId !== (req as CusRequest).user._id) {
+    return next(errorHandler(403, "Access is not allowed"));
+  }
+  const id = req.params.id;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const user = await User.findOne({ _id: userId, bookmarks: id }).lean();
+    await User.findByIdAndUpdate(
+      userId,
+      !user ? { $addToSet: { bookmarks: id } } : { $pull: { bookmarks: id } }
+    );
+    const userUpdated = await Post.findByIdAndUpdate(
+      id,
+      !user
+        ? { $addToSet: { bookmarks: userId }, $inc: { bookmarkNumber: 1 } }
+        : { $pull: { bookmarks: userId }, $inc: { bookmarkNumber: -1 } },
+      { new: true, projection: { doc: false, bookmarkNumber: 1, bookmarks: 1 } }
+    );
+    session.commitTransaction();
+    return res.status(200).json(userUpdated);
+  } catch (error) {
+    session.abortTransaction();
+    next(error);
+  } finally {
+    session.endSession();
+  }
+};
+export { updateUser, deleteUser, getUser, bookmarkPost };

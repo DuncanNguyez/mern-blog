@@ -14,6 +14,15 @@ html {
   background-color: #555;
 }
 
+.light div::-webkit-scrollbar {
+  width: 8px;
+  background-color: #dfdede;
+}
+
+.light div::-webkit-scrollbar-thumb {
+  background-color: #a2a2a2;
+}
+
 .bn-container > div:nth-child(1) {
   min-height: 300px;
 }
