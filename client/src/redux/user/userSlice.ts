@@ -67,6 +67,9 @@ const userSlice = createSlice({
       state.error = "";
       state.loading = false;
     },
+    refreshToken: (state: UserState, action: PayloadAction<string>) => {
+      if (state.currentUser) state.currentUser.refreshToken = action.payload;
+    },
   },
 });
 
@@ -81,5 +84,6 @@ export const {
   deleteFailure,
   deleteSuccess,
   signOutSuccess,
+  refreshToken
 } = userSlice.actions;
 export default userSlice.reducer;

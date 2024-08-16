@@ -2,7 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router-dom";
 import { RootState } from "../redux/store";
 import { useEffect, useState } from "react";
-import { signOutSuccess, User } from "../redux/user/userSlice";
+import { refreshToken, signOutSuccess, User } from "../redux/user/userSlice";
 
 export default function PrivateRoute() {
   const currentUser: User = useSelector(
@@ -25,6 +25,8 @@ export default function PrivateRoute() {
         body: JSON.stringify({ refreshToken: currentUser.refreshToken }),
       });
       if (resRefresh.ok) {
+        const data = await resRefresh.json();
+        dispatch(refreshToken(data.refreshToken));
         return setAuthenticated(true);
       }
       dispatch(signOutSuccess());
