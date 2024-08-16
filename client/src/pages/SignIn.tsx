@@ -75,7 +75,7 @@ export default function SignIn() {
             className="self-center whitespace-nowrap text-4xl font-bold dark:text-white "
           >
             <span className="mx-1 text-white px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg">
-              Duncan&apos;s
+              Xanadu
             </span>
             Blog
           </Link>
