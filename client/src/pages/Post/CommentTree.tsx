@@ -49,7 +49,6 @@ const CommentTree = memo((props: Props) => {
   }, [comments, limit, postId, replyToId, skip]);
 
   // call only one
-  console.log("object");
   useEffect(() => {
     if (!comments) getComments();
   }, [comments, getComments]);

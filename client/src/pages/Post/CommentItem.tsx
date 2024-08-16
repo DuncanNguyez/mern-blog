@@ -27,12 +27,14 @@ const CommentItem = (props: Props) => {
     vote,
     down,
   } = props.comment;
-  const currentUser: User = useSelector((state: any) => state.user).currentUser;
+  const currentUser: User | null = useSelector(
+    (state: any) => state.user
+  ).currentUser;
   const [upVoted, setUpVoted] = useState<boolean>(
-    vote?.some((id) => id === currentUser._id) || false
+    vote?.some((id) => id === currentUser?._id) || false
   );
   const [downVoted, setDownVoted] = useState<boolean>(
-    down?.some((id) => id === currentUser._id) || false
+    down?.some((id) => id === currentUser?._id) || false
   );
   const [voteNum, setVoteNum] = useState<number>(voteNumber || 0);
   const [downNum, setDownNum] = useState<number>(downNumber || 0);
@@ -69,7 +71,7 @@ const CommentItem = (props: Props) => {
       setComment({
         postId,
         replyToId: _id,
-        userId: currentUser?._id,
+        userId: currentUser?._id || "",
         content: { text },
       });
     },
@@ -133,15 +135,15 @@ const CommentItem = (props: Props) => {
     const res = await fetch(`/api/v1/comments/${_id}/vote`, { method: "post" });
     if (res.ok) {
       const data: IComment = await res.json();
-      setDownVoted(data.down?.some((id) => id === currentUser._id) || false);
+      setDownVoted(data.down?.some((id) => id === currentUser?._id) || false);
       setDownNum(data?.downNumber || 0);
-      setUpVoted(data.vote?.some((id) => id === currentUser._id) || false);
+      setUpVoted(data.vote?.some((id) => id === currentUser?._id) || false);
       setVoteNum(data?.voteNumber || 0);
     }
     if (res.status === 401) {
       alert("You need to login in to vote");
     }
-  }, [_id, currentUser._id]);
+  }, [_id, currentUser?._id]);
 
   const handleDownVote = useCallback(async () => {
     const res = await fetch(`/api/v1/comments/${_id}/vote`, {
@@ -149,15 +151,15 @@ const CommentItem = (props: Props) => {
     });
     if (res.ok) {
       const data: IComment = await res.json();
-      setDownVoted(data.down?.some((id) => id === currentUser._id) || false);
+      setDownVoted(data.down?.some((id) => id === currentUser?._id) || false);
       setDownNum(data?.downNumber || 0);
-      setUpVoted(data.vote?.some((id) => id === currentUser._id) || false);
+      setUpVoted(data.vote?.some((id) => id === currentUser?._id) || false);
       setVoteNum(data?.voteNumber || 0);
     }
     if (res.status === 401) {
       alert("You need to login in to vote");
     }
-  }, [_id, currentUser._id]);
+  }, [_id, currentUser?._id]);
 
   return (
     <>

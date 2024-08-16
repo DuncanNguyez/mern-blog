@@ -21,8 +21,13 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/posts", postRouter);
 app.use("/api/v1/comments", commentRouter);
+
 app.use(express.static(path.join(__dirname, "swagger/resource")));
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use(express.static(path.join(__dirname, "../../client/dist")));
+app.get("/", (req, res) => {
+  return res.sendFile("index.html");
+});
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.debug(err);
