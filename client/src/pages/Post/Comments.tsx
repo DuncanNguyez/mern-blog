@@ -60,7 +60,7 @@ export default function Comments(props: Props) {
             setCommentsNow([...commentsNow, data]);
             (e.target as HTMLInputElement).value = "";
             (e.target as HTMLInputElement).focus();
-            setComment(undefined)
+            setComment(undefined);
             return setAddCommentError("");
           }
           if (res.headers.get("Content-type")?.includes("application/json")) {
@@ -76,7 +76,7 @@ export default function Comments(props: Props) {
     [comment, commentsNow, currentUser]
   );
   return (
-    <div className="mt-8">
+    <div id="comment" className="pt-[76px] ">
       <TextInput
         onChange={handleChangeComment}
         onKeyDown={handleAddComment}

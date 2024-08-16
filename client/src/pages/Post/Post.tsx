@@ -15,7 +15,7 @@ import {
   BiDownvote,
   BiSolidDownvote,
 } from "react-icons/bi";
-import { FaRegBookmark, FaBookmark } from "react-icons/fa6";
+import { FaRegBookmark, FaBookmark, FaComment } from "react-icons/fa6";
 
 export default function Post() {
   const { theme } = useSelector((state: any) => state.theme);
@@ -175,6 +175,13 @@ export default function Post() {
                 ) : (
                   <FaRegBookmark className="size-6 " />
                 )}
+              </span>
+              <span
+                className={` hover:bg-[#66625e45] hover:text-purple-600  cursor-pointer   rounded-full`}
+              >
+                <a href="#comment" className="block p-3">
+                  <FaComment className="size-6" />
+                </a>
               </span>
             </div>
             <div className="p-10 flex-1">
