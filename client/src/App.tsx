@@ -14,15 +14,36 @@ import AuthorRoute from "./components/AuthorRoute.jsx";
 import Post from "./pages/Post/Post.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import { getAuth } from "firebase/auth";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { app } from "./firebase.js";
-import { signOutSuccess } from "./redux/user/userSlice.js";
+import { refreshToken, signOutSuccess, User } from "./redux/user/userSlice.js";
 
 export default function App() {
   const dispatch = useDispatch();
-  getAuth(app).onAuthStateChanged((user) => {
-    if (!user) {
-      dispatch(signOutSuccess());
+  const currentUser: User = useSelector((state: any) => state.user).currentUser;
+  getAuth(app).onAuthStateChanged(
+    (user) => {
+      if (!user) {
+        dispatch(signOutSuccess());
+      }
+    },
+    (error) => {
+      if (error) {
+        dispatch(signOutSuccess());
+      }
+    }
+  );
+  getAuth(app).onIdTokenChanged(async () => {
+    const resRefresh = await fetch(`/api/v1/auth/`, {
+      method: "post",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify({ refreshToken: currentUser.refreshToken }),
+    });
+    if (resRefresh.ok) {
+      const data = await resRefresh.json();
+      dispatch(refreshToken(data.refreshToken));
     }
   });
   return (
