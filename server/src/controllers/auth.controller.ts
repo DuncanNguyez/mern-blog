@@ -149,13 +149,12 @@ const refreshToken = async (
       }
       delete payload.exp;
       delete payload.iat;
-      const newToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
-        expiresIn: "1h",
-      });
+      const { token: newToken, refreshToken } = getTokens(payload);
+
       return res
         .status(200)
         .cookie("access_token", newToken, { httpOnly: true })
-        .end();
+        .json({ refreshToken });
     }
   );
 };
