@@ -25,8 +25,8 @@ app.use("/api/v1/comments", commentRouter);
 app.use(express.static(path.join(__dirname, "swagger/resource")));
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(express.static(path.join(__dirname, "../../client/dist")));
-app.get("/", (req, res) => {
-  return res.sendFile("index.html");
+app.get("/*", (req, res) => {
+  return res.sendFile(path.join(__dirname, "../../client/dist","index.html"));
 });
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
