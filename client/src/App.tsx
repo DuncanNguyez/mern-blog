@@ -16,36 +16,49 @@ import ScrollToTop from "./components/ScrollToTop.jsx";
 import { getAuth } from "firebase/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { app } from "./firebase.js";
-import { refreshToken, signOutSuccess, User } from "./redux/user/userSlice.js";
+import {
+  refreshToken,
+  signOutSuccess,
+  User as U,
+} from "./redux/user/userSlice.js";
+import PostsByTag from "./pages/Posts/PostByTag.js";
+import User from "./pages/User/User.js";
+import { useCallback, useEffect } from "react";
 
 export default function App() {
   const dispatch = useDispatch();
-  const currentUser: User = useSelector((state: any) => state.user).currentUser;
-  getAuth(app).onAuthStateChanged(
-    (user) => {
-      if (!user) {
-        dispatch(signOutSuccess());
-      }
-    },
-    (error) => {
-      if (error) {
-        dispatch(signOutSuccess());
-      }
-    }
-  );
-  getAuth(app).onIdTokenChanged(async () => {
-    const resRefresh = await fetch(`/api/v1/auth/`, {
-      method: "post",
-      headers: {
-        "Content-type": "application/json",
+  const currentUser: U = useSelector((state: any) => state.user).currentUser;
+  const autoCheckAuth = useCallback(() => {
+    getAuth(app).onAuthStateChanged(
+      (user) => {
+        if (!user) {
+          dispatch(signOutSuccess());
+        }
       },
-      body: JSON.stringify({ refreshToken: currentUser.refreshToken }),
+      (error) => {
+        if (error) {
+          dispatch(signOutSuccess());
+        }
+      }
+    );
+    getAuth(app).onIdTokenChanged(async () => {
+      const resRefresh = await fetch(`/api/v1/auth/`, {
+        method: "post",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({ refreshToken: currentUser?.refreshToken }),
+      });
+      if (resRefresh.ok) {
+        const data = await resRefresh.json();
+        dispatch(refreshToken(data.refreshToken));
+      }
     });
-    if (resRefresh.ok) {
-      const data = await resRefresh.json();
-      dispatch(refreshToken(data.refreshToken));
-    }
-  });
+  }, [currentUser?.refreshToken, dispatch]);
+  useEffect(() => {
+    autoCheckAuth();
+  }, [autoCheckAuth]);
+
   return (
     <BrowserRouter>
       <Header></Header>
@@ -67,9 +80,20 @@ export default function App() {
           </Route>
         </Route>
         <Route path="/posts/:path" element={<Post />}></Route>
+        <Route path="/posts/tags/:hashtag" element={<PostsByTag />}></Route>
+        <Route path="/users/:username" element={<User />}></Route>
         <Route path="/projects" element={<Projects />}></Route>
         <Route path="/about" element={<About />}></Route>
-        <Route path="*" element={<h1>notfound</h1>}></Route>
+        <Route
+          path="*"
+          element={
+            <div className="min-h-screen">
+              <h1 className="mx-auto text-center mt-20 text-2xl font-bold ">
+                Not found
+              </h1>
+            </div>
+          }
+        ></Route>
       </Routes>
       <ScrollToTop />
       <FooterCom></FooterCom>

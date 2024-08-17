@@ -6,10 +6,11 @@ import {
 } from "react-icons/bi";
 import { Alert, Button, Timeline } from "flowbite-react";
 import { IComment } from "./Comments";
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, memo, useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { User } from "../../redux/user/userSlice";
 import CommentTree from "./CommentTree";
+import { Link } from "react-router-dom";
 
 type Props = {
   comment: IComment;
@@ -20,7 +21,7 @@ interface IUser {
   imageUrl: string;
 }
 
-const CommentItem = (props: Props) => {
+const CommentItem = memo((props: Props) => {
   const {
     _id,
     postId,
@@ -170,18 +171,20 @@ const CommentItem = (props: Props) => {
     <>
       {!error && (
         <Timeline.Item className="mb-6">
-          <Timeline.Point />
+          <Timeline.Point  className="[&>*]:!bg-purple-400 [&>*]:!-left-[7px] "/>
           <Timeline.Content>
             <Timeline.Title>
-              <div className="flex gap-3 items-center ">
-                <img
-                  className="size-10 object-cover rounded-full cursor-pointer"
-                  src={user?.imageUrl}
-                  alt={user?.username}
-                />
-                <div>{user?.username}</div>
-                <Timeline.Time className=" m-0">{createdAt}</Timeline.Time>
-              </div>
+              <Link to={`/users/${user?.username}`}>
+                <div className="flex gap-3 items-center ">
+                  <img
+                    className="size-10 object-cover rounded-full cursor-pointer"
+                    src={user?.imageUrl}
+                    alt={user?.username}
+                  />
+                  <div>{user?.username}</div>
+                  <Timeline.Time className=" m-0">{createdAt}</Timeline.Time>
+                </div>
+              </Link>
             </Timeline.Title>
             <Timeline.Body>{content.text}</Timeline.Body>
             <div className="flex gap-10 items-center m-2">
@@ -259,6 +262,6 @@ const CommentItem = (props: Props) => {
       )}
     </>
   );
-};
+});
 
 export default CommentItem;

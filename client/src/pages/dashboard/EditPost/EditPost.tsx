@@ -144,7 +144,7 @@ export default function EditPost() {
         return dispatch(updatePostFailure("Must contain at least one hashtag"));
       }
       try {
-        const res = await fetch(`/api/v1/${currentUser._id}/posts/${_id}`, {
+        const res = await fetch(`/api/v1/users/${currentUser._id}/posts/${_id}`, {
           method: "put",
           headers: {
             "Content-type": "application/json",

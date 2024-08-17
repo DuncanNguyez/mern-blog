@@ -10,9 +10,11 @@ import authRouter from "./routes/auth.route";
 import postRouter from "./routes/post.route";
 import commentRouter from "./routes/comment.route";
 import { swaggerDocument } from "./swagger";
+import { elsConnect } from "./elasticsearch";
 
 dotenv.config();
 connectDb();
+elsConnect();
 const app = express();
 app.use(express.json());
 app.use(cookieParser());

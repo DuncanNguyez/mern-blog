@@ -22,7 +22,7 @@ export default function PrivateRoute() {
         headers: {
           "Content-type": "application/json",
         },
-        body: JSON.stringify({ refreshToken: currentUser.refreshToken }),
+        body: JSON.stringify({ refreshToken: currentUser?.refreshToken }),
       });
       if (resRefresh.ok) {
         const data = await resRefresh.json();
@@ -34,6 +34,6 @@ export default function PrivateRoute() {
       return setAuthenticated(false);
     };
     checkAuth();
-  }, [currentUser.refreshToken, dispatch]);
+  }, [currentUser, dispatch]);
   return currentUser && authenticated ? <Outlet /> : <Navigate to="/sign-in" />;
 }

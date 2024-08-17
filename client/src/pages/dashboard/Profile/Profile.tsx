@@ -12,7 +12,7 @@ import {
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 
-import { app } from "../../firebase";
+import { app } from "../../../firebase";
 import {
   deleteFailure,
   deleteStart,
@@ -21,11 +21,11 @@ import {
   updateFailure,
   updateStart,
   updateSuccess,
-} from "../../redux/user/userSlice";
+} from "../../../redux/user/userSlice";
 import { getAuth, updatePassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { User } from "./../../redux/user/userSlice";
-import { RootState } from "../../redux/store";
+import { User } from "../../../redux/user/userSlice";
+import { RootState } from "../../../redux/store";
 
 export default function Profile() {
   const { currentUser, error, loading } = useSelector(

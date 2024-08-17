@@ -1,4 +1,4 @@
-import Profile from "./Profile";
+import Profile from "./Profile/Profile";
 import CreatePost from "./CreatePost/CreatePost";
 import MyPosts from "./MyPosts/MyPost";
 import EditPost from "./EditPost/EditPost";

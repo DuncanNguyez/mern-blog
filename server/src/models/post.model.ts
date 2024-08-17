@@ -1,16 +1,28 @@
 import { model, Schema } from "mongoose";
+type JSONContent = {
+  type?: string;
+  attrs?: Record<string, any>;
+  content?: JSONContent[];
+  marks?: {
+    type: string;
+    attrs?: Record<string, any>;
+    [key: string]: any;
+  }[];
+  text?: string;
+  [key: string]: any;
+};
 export interface IPost {
   title: string;
   path: string;
   doc: any;
   authorId: string;
   hashtags: Array<string>;
-  vote?: Array<string>;
+  vote: Array<string>;
   voteNumber: number;
-  down?: Array<string>;
+  down: Array<string>;
   downNumber: number;
-  bookmarks?: Array<string>;
-  bookmarkNumber?: number;
+  bookmarks: Array<string>;
+  bookmarkNumber: number;
   [key: string]: any;
 }
 const postSchema = new Schema<IPost>(
@@ -32,3 +44,19 @@ const postSchema = new Schema<IPost>(
 
 const Post = model("post", postSchema);
 export default Post;
+
+export function extractTextFromJSON(node: JSONContent): string {
+  if (!node || typeof node !== "object") {
+    return "";
+  }
+
+  if (node.type === "text") {
+    return node.text || "";
+  }
+
+  if (node.content && Array.isArray(node.content)) {
+    return node.content.map(extractTextFromJSON).join("\n");
+  }
+
+  return "";
+}

@@ -20,7 +20,7 @@ router.get("/:id", getUser);
 router.put("/:id", protect, updateUser);
 router.delete("/:id", protect, deleteUser);
 
-router.get("/:id/posts", protect, authorProtect, getPostsByUser);
+router.get("/:id/posts", getPostsByUser);
 router.get("/:id/posts/bookmark", protect, getPostsBookmarksByUser);
 router.delete("/:userId/posts/:id", protect, authorProtect, deletePostByUser);
 router.put("/:userId/posts/:id", protect, authorProtect, editPostByUser);

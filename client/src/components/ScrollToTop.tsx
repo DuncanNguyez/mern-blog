@@ -1,7 +1,14 @@
 import { useEffect } from "react";
 import { PiMonitorArrowUpThin } from "react-icons/pi";
+import { useLocation } from "react-router-dom";
 
 export default function ScrollToTop() {
+  const { pathname } = useLocation();
+  // Automatically scrolls to top whenever pathname changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   useEffect(() => {
     setTimeout(() => {
       const toTopBtn = document.getElementById("toTop");

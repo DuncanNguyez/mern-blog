@@ -2,7 +2,7 @@ import { createTheme, ThemeProvider } from "@mui/material";
 import { RichTextReadOnly } from "mui-tiptap";
 import { useSelector } from "react-redux";
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import { extensions } from "../../tiptap/editorExtension";
 import TOC from "./TOC";
@@ -130,11 +130,15 @@ export default function Post() {
         ) : (
           <>
             <div className="hidden md:flex pl-20 pt-12 ml-3  flex-col items-center gap-3 h-screen top-[66px] sticky ">
-              <img
-                src={currentUser?.imageUrl}
-                alt={currentUser?.username}
-                className="size-16 rounded-full object-cover cursor-pointer"
-              />
+              <div>
+                <Link to={`/users/${currentUser?.username}`}>
+                  <img
+                    src={currentUser?.imageUrl}
+                    alt={currentUser?.username}
+                    className="size-16 rounded-full object-cover"
+                  />
+                </Link>
+              </div>
               <div className="flex flex-col gap-1">
                 <span
                   onClick={handleUpVote}
@@ -194,12 +198,11 @@ export default function Post() {
                   <div className="max-w-lg">
                     {hashtags?.map((tag) => {
                       return (
-                        <span
-                          className=" text-sm bg-gray-500 group px-1.5 align-middle inline-block via-emerald-50 m-1 border rounded cursor-pointer relative"
-                          key={tag}
-                        >
-                          {tag}
-                        </span>
+                        <Link key={tag} to={`/posts/tags/${tag}`}>
+                          <span className=" text-sm border-2 dark:border group px-1.5 align-middle inline-block via-emerald-50 m-1  rounded cursor-pointer relative">
+                            {tag}
+                          </span>
+                        </Link>
                       );
                     })}
                   </div>

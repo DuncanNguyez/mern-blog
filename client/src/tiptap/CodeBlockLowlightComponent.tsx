@@ -23,7 +23,7 @@ export default function CodeBlockLowlightComponent(props: Record<string, any>) {
       >
         <option
           className="dark:text-gray-200 dark:bg-[rgb(23,30,48)]"
-          value="null"
+          value="auto"
         >
           auto
         </option>

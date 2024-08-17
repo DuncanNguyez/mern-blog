@@ -29,9 +29,6 @@ import { Text } from "@tiptap/extension-text";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Underline } from "@tiptap/extension-underline";
-import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
-import { ReactNodeViewRenderer } from "@tiptap/react";
-import { createLowlight, common } from "lowlight";
 
 import {
   FontSize,
@@ -40,7 +37,7 @@ import {
   ResizableImage,
   TableImproved,
 } from "mui-tiptap";
-import CodeBlockLowlightComponent from "./CodeBlockLowlightComponent";
+import { CustomCodeBlock } from "./custom";
 // Don't treat the end cursor as "inclusive" of the Link mark, so that users can
 // actually "exit" a link if it's the last element in the editor (see
 // https://tiptap.dev/api/schema#inclusive and
@@ -74,7 +71,6 @@ const CustomSubscript = Subscript.extend({
 const CustomSuperscript = Superscript.extend({
   excludes: "subscript",
 });
-const lowlight = createLowlight(common);
 export const extensions = [
   // We incorporate all of the functionality that's part of
   // https://tiptap.dev/api/extensions/starter-kit, plus a few additional
@@ -99,11 +95,7 @@ export const extensions = [
   TableCell,
   BulletList,
 
-  CodeBlockLowlight.extend({
-    addNodeView() {
-      return ReactNodeViewRenderer(CodeBlockLowlightComponent);
-    },
-  }).configure({ lowlight }),
+  CustomCodeBlock,
 
   Document,
   HardBreak,

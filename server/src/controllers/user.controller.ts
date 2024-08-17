@@ -8,6 +8,7 @@ import { userValidation } from "../utils/validation";
 import { CusRequest } from "./auth.controller";
 import Post from "../models/post.model";
 import mongoose from "mongoose";
+import { elsClient } from "../elasticsearch";
 
 const { find } = lodash;
 const updateUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -59,7 +60,9 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
 const getUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const user = await User.findById(id).lean();
+    const user =
+      (await User.findOne({ username: id }).lean()) ||
+      (await User.findById(id).lean());
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -89,7 +92,7 @@ const bookmarkPost = async (
       userId,
       !user ? { $addToSet: { bookmarks: id } } : { $pull: { bookmarks: id } }
     );
-    const userUpdated = await Post.findByIdAndUpdate(
+    const postUpdated = await Post.findByIdAndUpdate(
       id,
       !user
         ? { $addToSet: { bookmarks: userId }, $inc: { bookmarkNumber: 1 } }
@@ -97,7 +100,17 @@ const bookmarkPost = async (
       { new: true, projection: { doc: false, bookmarkNumber: 1, bookmarks: 1 } }
     );
     session.commitTransaction();
-    return res.status(200).json(userUpdated);
+    if (postUpdated) {
+      elsClient.update({
+        id: postUpdated._id.toString(),
+        index: "post",
+        doc: {
+          bookmarkNumber: postUpdated?.bookmarkNumber,
+          bookmarks: postUpdated?.bookmarks,
+        },
+      });
+    }
+    return res.status(200).json(postUpdated);
   } catch (error) {
     session.abortTransaction();
     next(error);

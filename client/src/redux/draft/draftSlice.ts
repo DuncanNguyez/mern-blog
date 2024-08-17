@@ -3,6 +3,7 @@ import { Content } from "@tiptap/core";
 
 export interface Post {
   _id?: string;
+  authorId?: string;
   path: string;
   title: string;
   hashtags: Array<string>;
