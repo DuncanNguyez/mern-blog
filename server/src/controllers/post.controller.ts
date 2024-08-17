@@ -182,6 +182,22 @@ const downVotePost = async (
     next(error);
   }
 };
+const getPostsBookmarksByUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { id } = req.params;
+  if (id !== (req as CusRequest).user._id) {
+    return res.status(403).json({ message: "Access is not allowed" });
+  }
+  try {
+    const posts = await Post.find({ bookmarks: id }).lean();
+    return res.status(200).json(posts || []);
+  } catch (error) {
+    next(error);
+  }
+};
 
 export {
   createPostByUser,
@@ -191,4 +207,5 @@ export {
   editPostByUser,
   upVotePost,
   downVotePost,
+  getPostsBookmarksByUser,
 };

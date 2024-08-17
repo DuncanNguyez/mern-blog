@@ -1,4 +1,5 @@
 import { Sidebar } from "flowbite-react";
+import { IoBookmarks } from "react-icons/io5";
 import { IoDocumentsSharp } from "react-icons/io5";
 import { HiDocumentAdd, HiUser, HiLogout } from "react-icons/hi";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -60,6 +61,16 @@ export default function DashboardSidebar() {
                 as="div"
               >
                 <span className="font-semibold">My posts</span>
+              </Sidebar.Item>
+            </Link>
+            <Link to={"/dashboard/bookmarks"}>
+              <Sidebar.Item
+                icon={IoBookmarks}
+                active={path === "bookmarks"}
+                className="my-1"
+                as="div"
+              >
+                <span className="font-semibold">Bookmarks</span>
               </Sidebar.Item>
             </Link>
           </Sidebar.ItemGroup>
