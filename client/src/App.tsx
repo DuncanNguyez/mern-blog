@@ -24,6 +24,7 @@ import {
 import PostsByTag from "./pages/Posts/PostByTag.js";
 import User from "./pages/User/User.js";
 import { useCallback, useEffect } from "react";
+import Search from "./pages/Search/Search.js";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -84,6 +85,7 @@ export default function App() {
         <Route path="/users/:username" element={<User />}></Route>
         <Route path="/projects" element={<Projects />}></Route>
         <Route path="/about" element={<About />}></Route>
+        <Route path="/search" element={<Search />}></Route>
         <Route
           path="*"
           element={

@@ -171,7 +171,7 @@ const CommentItem = memo((props: Props) => {
     <>
       {!error && (
         <Timeline.Item className="mb-6">
-          <Timeline.Point  className="[&>*]:!bg-purple-400 [&>*]:!-left-[7px] "/>
+          <Timeline.Point className="[&>*]:!bg-purple-400 [&>*]:!-left-[7px] " />
           <Timeline.Content>
             <Timeline.Title>
               <Link to={`/users/${user?.username}`}>
@@ -235,7 +235,10 @@ const CommentItem = memo((props: Props) => {
                 />
                 <div className="mt-2 flex justify-end gap-2">
                   <Button
-                    onClick={() => setShowTextEditor(!showTextEditor)}
+                    onClick={() => {
+                      setShowTextEditor(!showTextEditor);
+                      setComment(undefined);
+                    }}
                     outline
                     gradientDuoTone={"redToYellow"}
                   >

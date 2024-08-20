@@ -16,6 +16,7 @@ import {
   BiSolidDownvote,
 } from "react-icons/bi";
 import { FaRegBookmark, FaBookmark, FaComment } from "react-icons/fa6";
+import { Spinner } from "flowbite-react";
 
 export default function Post() {
   const { theme } = useSelector((state: any) => state.theme);
@@ -41,9 +42,11 @@ export default function Post() {
   );
   const [voteNum, setVoteNum] = useState<number>(voteNumber || 0);
   const [downNum, setDownNum] = useState<number>(downNumber || 0);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const getPost = async () => {
+      setLoading(true);
       try {
         const res = await fetch(`/api/v1/posts/${path}`);
         if (res.ok) {
@@ -62,6 +65,7 @@ export default function Post() {
       } catch (error: any) {
         console.log(error.message);
       }
+      setLoading(false);
     };
     getPost();
   }, [currentUser?._id, path]);
@@ -124,6 +128,11 @@ export default function Post() {
   });
   return (
     <ThemeProvider theme={mTheme}>
+      {loading && (
+        <div className="text-center ">
+          <Spinner className="mx-auto my-4"></Spinner>
+        </div>
+      )}
       <div className="max-w-screen-2xl mx-auto flex flex-row justify-between min-h-screen gap-4 ">
         {!post ? (
           <h1 className="m-auto">POST NOT FOUND</h1>

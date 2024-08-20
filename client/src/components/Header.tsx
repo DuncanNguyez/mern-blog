@@ -1,4 +1,4 @@
-import { Avatar, Button, Dropdown, Navbar, TextInput } from "flowbite-react";
+import { Avatar, Button, Dropdown, Navbar } from "flowbite-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AiOutlineSearch } from "react-icons/ai";
 import { FaMoon, FaSun } from "react-icons/fa";
@@ -7,7 +7,8 @@ import { toggleTheme } from "../redux/theme/themSlice.ts";
 import { app } from "../firebase.ts";
 import { getAuth } from "firebase/auth";
 import { signOutSuccess } from "../redux/user/userSlice.ts";
-import { useCallback } from "react";
+import {  useCallback } from "react";
+import SearchCom from "./SearchCom.tsx";
 
 export default function Header() {
   const path = useLocation().pathname;
@@ -25,6 +26,7 @@ export default function Header() {
       console.log(error);
     }
   }, [dispatch, navigate]);
+
   return (
     <Navbar id="header" className="border-b-2 sticky top-0 z-50">
       <Link
@@ -36,14 +38,7 @@ export default function Header() {
         </span>
         Blog
       </Link>
-      <form className="flex-1 mx-16">
-        <TextInput
-          type="text"
-          placeholder="Search..."
-          rightIcon={AiOutlineSearch}
-          className="hidden lg:inline"
-        ></TextInput>
-      </form>
+      <SearchCom/>
       <Button className="w-12 h-10 lg:hidden size-[45px]" color="gray" pill>
         <AiOutlineSearch />
       </Button>

@@ -180,7 +180,7 @@ const editPostByUser = async (
           textContent: extractTextFromJSON(newPost.doc),
           title,
           updatedAt: newPost.updatedAt,
-          hashtags:newPost.hashtags
+          hashtags: newPost.hashtags,
         },
       });
     return res.status(200).json({ message: "Post updated successful" });
@@ -365,7 +365,47 @@ const getPosts = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
-
+const search = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const s = req.query.s as string;
+    const { skip, limit } = req.query;
+    const elsRes = await elsClient.search({
+      index: "post",
+      query: {
+        multi_match: {
+          query: s,
+          fields: [
+            "title",
+            "title._2gram",
+            "title._3gram",
+            "textContent",
+            "textContent._2gram",
+            "textContent._3gram",
+          ],
+        },
+      },
+      highlight: {
+        fields: {
+          title: {
+            number_of_fragments: 1,
+          },
+          textContent: {
+            fragment_size: 500,
+            number_of_fragments: 2,
+          },
+        },
+        pre_tags: ["<em class='search-hightlight'>"],
+        post_tags: ["</em> "],
+      },
+      _source: ["path"],
+      ...(limit ? { size: limit } : {}),
+      ...(skip ? { from: skip } : {}),
+    });
+    return res.status(200).json(elsRes);
+  } catch (error) {
+    next(error);
+  }
+};
 export {
   getPosts,
   createPostByUser,
@@ -378,4 +418,5 @@ export {
   getPostsBookmarksByUser,
   getHashtags,
   getPostsByTag,
+  search,
 };
