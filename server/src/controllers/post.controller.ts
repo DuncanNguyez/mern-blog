@@ -6,7 +6,7 @@ import generateRandomString from "../utils/generateRandomString";
 import removeDiacritics from "../utils/removeDiacritics";
 import { postValidation } from "../utils/validation";
 import { CusRequest } from "./auth.controller";
-import { FilterQuery } from "mongoose";
+import mongoose, { FilterQuery } from "mongoose";
 import { errorHandler } from "../utils/error";
 import Hashtag from "./../models/hashtag.model";
 import { elsClient } from "../elasticsearch";
@@ -19,7 +19,11 @@ const createPostByUser = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { title, editorDoc: doc, hashtags } = req.body;
+  const { title, editorDoc: doc } = req.body;
+  const hashtags = req.body.hashtags?.map((tag: string) =>
+    removeDiacritics(tag).trim().toLowerCase().replace(/ /g, "-")
+  );
+
   const authorId = (req as CusRequest).user._id;
   const path =
     removeDiacritics(title).trim().toLowerCase().replace(/ /g, "-") +
@@ -57,7 +61,7 @@ const createPostByUser = async (
         createdAt: post.createdAt,
         updatedAt: post.updateAt,
       };
-      elsClient.index({
+      await elsClient.index({
         index: "post",
         id: post._id.toString(),
         document: elsDoc,
@@ -105,17 +109,18 @@ const getPostsByUser = async (
     next(error);
   }
 };
-
 const deletePostByUser = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const session = await mongoose.startSession();
   try {
     const { id, userId } = req.params;
     if (userId !== (req as CusRequest).user._id) {
       return next(errorHandler(403, "Access is not allowed"));
     }
+    session.startTransaction();
     const post = await Post.findOneAndDelete({
       _id: id,
       authorId: (req as CusRequest).user._id,
@@ -126,10 +131,14 @@ const deletePostByUser = async (
     post.hashtags.map((tag) =>
       Hashtag.findOneAndUpdate({ name: tag }, { $inc: { count: -1 } })
     );
-    elsClient.delete({ id, index: "post" });
+    await elsClient.delete({ id, index: "post" });
+    session.commitTransaction();
     return res.status(200).json({ message: "Post has been deleted" });
   } catch (error) {
+    session.abortTransaction();
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 const editPostByUser = async (
@@ -137,7 +146,10 @@ const editPostByUser = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { title, editorDoc: doc, hashtags } = req.body;
+  const { title, editorDoc: doc } = req.body;
+  const hashtags = req.body.hashtags?.map((tag: string) =>
+    removeDiacritics(tag).trim().toLowerCase().replace(/ /g, "-")
+  );
   const { id, userId } = req.params;
   const authorId = (req as CusRequest).user._id;
   if (userId !== authorId) {
@@ -155,7 +167,7 @@ const editPostByUser = async (
       { _id: id, authorId },
       { $set: { title, hashtags, doc } }
     );
-    hashtags.map((tag: string) =>
+    hashtags?.map((tag: string) =>
       Hashtag.findOneAndUpdate(
         { name: tag },
         {
@@ -173,7 +185,7 @@ const editPostByUser = async (
     );
     const newPost = await Post.findById(id).lean();
     if (newPost)
-      elsClient.update({
+      await elsClient.update({
         index: "post",
         id: newPost._id.toString(),
         doc: {
@@ -210,7 +222,7 @@ const upVotePost = async (req: Request, res: Response, next: NextFunction) => {
       { new: true, projection: { doc: false } }
     );
     if (postUpdated) {
-      elsClient.update({
+      await elsClient.update({
         index: "post",
         id: postUpdated._id.toString(),
         doc: {
@@ -252,7 +264,7 @@ const downVotePost = async (
       { new: true, projection: { doc: false } }
     );
     if (postUpdated) {
-      elsClient.update({
+      await elsClient.update({
         index: "post",
         id: postUpdated._id.toString(),
         doc: {
@@ -406,6 +418,7 @@ const search = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
+
 export {
   getPosts,
   createPostByUser,

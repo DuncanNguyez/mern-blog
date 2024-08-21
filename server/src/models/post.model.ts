@@ -23,6 +23,7 @@ export interface IPost {
   downNumber: number;
   bookmarks: Array<string>;
   bookmarkNumber: number;
+  commentNumber?: number;
   [key: string]: any;
 }
 const postSchema = new Schema<IPost>(
@@ -31,13 +32,14 @@ const postSchema = new Schema<IPost>(
     path: { type: String, required: true, unique: true },
     doc: { type: Object, required: true },
     authorId: { type: String, required: true },
-    hashtags: [String],
-    vote: [String],
+    hashtags: { type: [String], default: [] },
+    vote: { type: [String], default: [] },
     voteNumber: { type: Number, default: 0 },
-    down: [String],
+    down: { type: [String], default: [] },
     downNumber: { type: Number, default: 0 },
-    bookmarks: [String],
+    bookmarks: { type: [String], default: [] },
     bookmarkNumber: { type: Number, default: 0 },
+    commentNumber: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

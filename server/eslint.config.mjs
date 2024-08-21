@@ -13,6 +13,6 @@ export default [
     },
   },
   {
-    ignores: ["**/bin/**/*"],
+    ignores: ["**/bin/**/*","**/test/**/*"],
   },
 ];

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv"
-dotenv.config()
+import { config } from "dotenv";
+config();
 export default async () => {
   const { MONGO_USERNAME: user, MONGO_PASSWORD: pass } = process.env;
   const cnn = await mongoose.connect(`mongodb://localhost:27017/blog-app`, {

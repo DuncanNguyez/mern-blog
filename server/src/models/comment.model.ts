@@ -19,9 +19,9 @@ const commentSchema = new Schema<IComment>(
     postId: { type: String, required: true },
     userId: { type: String, required: true },
     replyToId: { type: String },
-    vote: [String],
+    vote: { type: [String], default: [] },
     voteNumber: { type: Number, default: 0 },
-    down: [String],
+    down: { type: [String], default: [] },
     downNumber: { type: Number, default: 0 },
     content: {
       text: { type: String },

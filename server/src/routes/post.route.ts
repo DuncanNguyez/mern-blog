@@ -28,5 +28,5 @@ router.get("/:id/comments/", getCommentsByPost);
 
 router.get("/:path", getPost);
 
-
+ 
 export default router;

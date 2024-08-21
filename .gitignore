@@ -27,3 +27,6 @@ package-lock.json
 bin
 .env
 test.*
+test
+mern-blog.json
+scraper
