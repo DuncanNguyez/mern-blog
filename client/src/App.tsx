@@ -23,42 +23,47 @@ import {
 } from "./redux/user/userSlice.js";
 import PostsByTag from "./pages/Posts/PostByTag.js";
 import User from "./pages/User/User.js";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import Search from "./pages/Search/Search.js";
 
 export default function App() {
   const dispatch = useDispatch();
   const currentUser: U = useSelector((state: any) => state.user).currentUser;
-  const autoCheckAuth = useCallback(() => {
-    getAuth(app).onAuthStateChanged(
-      (user) => {
-        if (!user) {
-          dispatch(signOutSuccess());
-        }
-      },
-      (error) => {
-        if (error) {
-          dispatch(signOutSuccess());
-        }
-      }
-    );
+  useEffect(() => {
     getAuth(app).onIdTokenChanged(async () => {
+      if (!currentUser?.refreshToken) {
+        return;
+      }
       const resRefresh = await fetch(`/api/v1/auth/`, {
         method: "post",
         headers: {
           "Content-type": "application/json",
         },
-        body: JSON.stringify({ refreshToken: currentUser?.refreshToken }),
+        body: JSON.stringify({ refreshToken: currentUser.refreshToken }),
       });
       if (resRefresh.ok) {
         const data = await resRefresh.json();
-        dispatch(refreshToken(data.refreshToken));
+        return dispatch(refreshToken(data.refreshToken));
       }
     });
-  }, [currentUser?.refreshToken, dispatch]);
+  }, [currentUser.refreshToken, dispatch]);
+
   useEffect(() => {
-    autoCheckAuth();
-  }, [autoCheckAuth]);
+    getAuth(app).onAuthStateChanged(
+      async (user) => {
+        if (!user) {
+          await fetch("/api/v1/auth/sign-out", { method: "post" });
+          dispatch(signOutSuccess());
+        }
+      },
+      async (error) => {
+        if (error) {
+          await fetch("/api/v1/auth/sign-out", { method: "post" });
+          dispatch(signOutSuccess());
+        }
+      }
+    );
+  }, [dispatch]);
 
   return (
     <BrowserRouter>

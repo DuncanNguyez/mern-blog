@@ -43,7 +43,7 @@ export default function Post() {
   const [voteNum, setVoteNum] = useState<number>(voteNumber || 0);
   const [downNum, setDownNum] = useState<number>(downNumber || 0);
   const [loading, setLoading] = useState<boolean>(true);
-
+  const [author, setAuthor] = useState<User>();
   useEffect(() => {
     const getPost = async () => {
       setLoading(true);
@@ -69,7 +69,16 @@ export default function Post() {
     };
     getPost();
   }, [currentUser?._id, path]);
-
+  useEffect(() => {
+    const getAuthor = async () => {
+      const res = await fetch(`/api/v1/users/${post?.authorId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAuthor(data);
+      }
+    };
+    if (post?.authorId) getAuthor();
+  }, [post?.authorId]);
   const handleUpVote = useCallback(async () => {
     const res = await fetch(`/api/v1/posts/${_id}/vote`, { method: "post" });
     if (res.ok) {
@@ -140,10 +149,10 @@ export default function Post() {
           <>
             <div className="hidden md:flex pl-20 pt-12 ml-3  flex-col items-center gap-3 h-screen top-[66px] sticky ">
               <div>
-                <Link to={`/users/${currentUser?.username}`}>
+                <Link to={`/users/${author?.username}`}>
                   <img
-                    src={currentUser?.imageUrl}
-                    alt={currentUser?.username}
+                    src={author?.imageUrl}
+                    alt={author?.username}
                     className="size-16 rounded-full object-cover"
                   />
                 </Link>

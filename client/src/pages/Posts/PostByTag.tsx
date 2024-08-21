@@ -24,7 +24,7 @@ export default function PostsByTag() {
         const data = await res.json();
         setSkip(skip + 5);
         if (data.length < limit) setIsMore(false);
-        setPost(data);
+        setPost((prev) => [...(prev || []), ...data]);
         return setLoading(false);
       }
     } catch (error) {

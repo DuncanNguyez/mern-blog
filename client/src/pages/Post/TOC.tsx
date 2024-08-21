@@ -26,9 +26,10 @@ export default function TOC() {
     setHashPath(hash);
     location.hash = hash;
     const title = document.getElementById(hash);
+
     if (title) {
       window.scrollTo({
-        top: hash == "title" ? 0 : title?.offsetTop + 210,
+        top: title.getBoundingClientRect().top + window.scrollY - (66 + 4),
         behavior: "smooth",
       });
     }

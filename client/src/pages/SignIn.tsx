@@ -53,13 +53,16 @@ export default function SignIn() {
           },
           body: JSON.stringify(formData),
         });
-        const data = await res.json();
-        if (data.success === false) {
+        if (res.ok) {
+          const data = await res.json();
+          dispatch(signInSuccess(data));
+          await signInWithEmailAndPassword(getAuth(app), data.email, password);
+          return navigate("/home");
+        }
+        if (res.headers.get("Content-type")?.includes("application/json")) {
+          const data = await res.json();
           return dispatch(signInFailure(data.message));
         }
-        dispatch(signInSuccess(data));
-        await signInWithEmailAndPassword(getAuth(app), data.email, password);
-        navigate("/home");
       } catch (error: any) {
         dispatch(signInFailure(error.message));
       }

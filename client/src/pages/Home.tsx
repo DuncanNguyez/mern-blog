@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Posts from "../components/Posts";
 import { Post } from "../redux/draft/draftSlice";
-import { Button } from "flowbite-react";
+import { Button, Spinner } from "flowbite-react";
 
 export default function Home() {
   const [posts, setPost] = useState<Array<Post>>();
@@ -9,6 +9,7 @@ export default function Home() {
   const [hashtagsSearch, setHashtagsSearch] = useState<Set<string>>(new Set());
   const [skip, setSkip] = useState<number>(0);
   const [isMore, setIsMore] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const limit = 5;
   useEffect(() => {
     const getTags = async () => {
@@ -22,6 +23,7 @@ export default function Home() {
   }, []);
   const getPosts = useCallback(
     async (currentSkip?: number) => {
+      setLoading(true);
       try {
         const query = new URLSearchParams({
           hashtags:
@@ -37,14 +39,19 @@ export default function Home() {
           const data = await res.json();
           setSkip((currentSkip === 0 ? currentSkip : skip) + 5);
           if (data.length < limit) setIsMore(false);
-          return setPost(data);
+          setLoading(false);
+          return setPost([
+            ...(currentSkip && posts?.length ? posts : []),
+            ...data,
+          ]);
         }
       } catch (error) {
         console.log(error);
       }
-      setPost([]);
+      setLoading(false);
+      setPost([...(posts || [])]);
     },
-    [hashtagsSearch, skip]
+    [hashtagsSearch, posts, skip]
   );
   useEffect(() => {
     if (!posts) getPosts();
@@ -64,9 +71,9 @@ export default function Home() {
   );
   return (
     <div>
-      <div className="p-20 pb-1 bg-gradient-to-r from-indigo-500 from-10% via-[#0ea5e9de] via-30% to-[#0bffae8a] to-90%">
+      <div className="text-balance pb-1 bg-gradient-to-r from-indigo-500 from-10% via-[#0ea5e9de] via-30% to-[#0bffae8a] to-90%">
         <h1 className="text-center underline">All Tags</h1>
-        <div className=" flex gap-2 m-2 justify-center px-20 pb-5 pt-0">
+        <div className=" max-h-52  overflow-auto  gap-2 m-2  px-20 pb-5 pt-0">
           {hashtags.map((tag) => {
             const onSearch = hashtagsSearch.has(tag);
             return (
@@ -75,7 +82,7 @@ export default function Home() {
                 key={tag}
                 className={`${
                   onSearch ? "bg-orange-400" : ""
-                } border-2 dark:border px-1 rounded cursor-pointer`}
+                } inline-block m-1 border-2 dark:border px-1 rounded cursor-pointer`}
               >
                 {tag}
               </span>
@@ -85,6 +92,11 @@ export default function Home() {
       </div>
       <div className="min-h-screen max-w-screen-lg container mx-auto px-20 mt-3">
         <Posts posts={posts || []} />
+        {loading && (
+          <div className="text-center">
+            <Spinner className="mx-auto my-4"></Spinner>
+          </div>
+        )}
         {isMore && (
           <div className="flex justify-center m-5">
             <Button

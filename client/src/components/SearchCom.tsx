@@ -97,14 +97,14 @@ const SearchCom = () => {
       <div
         className={`${
           showModal ? "" : "hidden"
-        } overflow-auto shadow-lg  bg-[#ffffffc8] dark:bg-[#23273da2] border border-[#1b1a5d] absolute bottom--1 dark:border-gray-400   mt-1 rounded max-h-screen min-h-96 w-full min-w-96`}
+        } overflow-auto shadow-lg  bg-[#ffffffc8] dark:bg-[#23273da2] border border-[#1b1a5d] absolute bottom--1 dark:border-gray-400   mt-1 rounded max-h-96 min-h-96 w-full min-w-96`}
       >
         {loading && (
           <div className="text-center p-2">
             <Spinner />
           </div>
         )}
-        {hits && (
+        {hits && hits?.length > 0 ? (
           <div
             onClick={() => {
               setHits([]);
@@ -115,21 +115,31 @@ const SearchCom = () => {
               ?.map((hit) => {
                 const path = `/posts/${hit._source.path}`;
                 const textContents =
-                  hit.highlight?.textContent?.map((item) => {
+                  hit.highlight?.textContent?.map((item, index) => {
                     return (
-                      <LinkSearchItem key={item} path={path} innerHTML={item} />
+                      <LinkSearchItem
+                        key={item + index}
+                        path={path}
+                        innerHTML={item}
+                      />
                     );
                   }) || [];
                 const titles =
-                  hit.highlight?.title?.map((item) => {
+                  hit.highlight?.title?.map((item, index) => {
                     return (
-                      <LinkSearchItem key={item} path={path} innerHTML={item} />
+                      <LinkSearchItem
+                        key={item + index}
+                        path={path}
+                        innerHTML={item}
+                      />
                     );
                   }) || [];
                 return [...titles, ...textContents];
               })
               .flat()}
           </div>
+        ) : (
+          ""
         )}
         {hits && hits.length === 0 && (
           <div className="text-center p-4">Not found</div>
