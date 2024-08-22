@@ -46,7 +46,7 @@ export default function App() {
         return dispatch(refreshToken(data.refreshToken));
       }
     });
-  }, [currentUser.refreshToken, dispatch]);
+  }, [currentUser?.refreshToken, dispatch]);
 
   useEffect(() => {
     getAuth(app).onAuthStateChanged(

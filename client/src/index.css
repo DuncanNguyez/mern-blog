@@ -5,9 +5,10 @@ html {
   scroll-behavior: smooth;
 }
 
-.MuiTiptap-MenuBar-root{top: 66.6px !important;}
-        
-        
+.MuiTiptap-MenuBar-root {
+  top: 66.6px !important;
+}
+
 .dark div::-webkit-scrollbar {
   width: 8px;
   background-color: #2e2e4b;

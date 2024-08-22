@@ -34,8 +34,30 @@ export default function PostsByTag() {
     setPost([...(posts || [])]);
   }, [hashtag, posts, skip]);
   useEffect(() => {
-    if (!posts) getPosts();
-  }, [getPosts, posts]);
+    const getPostsFirst = async () => {
+      setLoading(true);
+      try {
+        const query = new URLSearchParams({
+          fields: "title,createdAt,hashtags,authorId,path",
+          limit: limit + "",
+          skip: 0 + "",
+        }).toString();
+        const res = await fetch(`/api/v1/posts/tags/${hashtag}?${query}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSkip(5);
+          if (data.length < limit) setIsMore(false);
+          setPost(data);
+          return setLoading(false);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+      setLoading(false);
+      setPost([]);
+    };
+    getPostsFirst();
+  }, [hashtag]);
 
   return (
     <div className="min-h-screen max-w-screen-lg container mx-auto px-20 mt-10">

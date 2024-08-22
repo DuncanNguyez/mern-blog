@@ -169,7 +169,7 @@ export default function EditPost() {
   );
 
   return (
-    <div className="max-w-4xl w-full mx-auto p-3 min-h-screen">
+    <div className=" w-full mx-auto p-3 min-h-screen">
       <form className="w-full mx-auto flex flex-col gap-3">
         <h1 className="text-center text-3xl font-semibold ">Edit post</h1>
         <TextInput

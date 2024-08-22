@@ -6,7 +6,21 @@ export default function ScrollToTop() {
   const { pathname } = useLocation();
   // Automatically scrolls to top whenever pathname changes
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const hash = location.hash;
+    if (!hash) {
+      window.scrollTo(0, 0);
+    } else {
+      setTimeout(() => {
+        const element = document.getElementById(hash.replace("#", ""));
+        if (element) {
+          window.scrollTo({
+            top:
+              element.getBoundingClientRect().top + window.scrollY - (66 + 4),
+            behavior: "smooth",
+          });
+        }
+      }, 2000);
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -25,6 +39,7 @@ export default function ScrollToTop() {
       };
     }, 500);
   }, []);
+
   return (
     <div
       id="toTop"

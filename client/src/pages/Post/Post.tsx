@@ -142,12 +142,12 @@ export default function Post() {
           <Spinner className="mx-auto my-4"></Spinner>
         </div>
       )}
-      <div className="max-w-screen-2xl mx-auto flex flex-row justify-between min-h-screen gap-4 ">
+      <div className="min-h-screen break-words grid grid-cols-12 ">
         {!post ? (
           <h1 className="m-auto">POST NOT FOUND</h1>
         ) : (
           <>
-            <div className="hidden md:flex pl-20 pt-12 ml-3  flex-col items-center gap-3 h-screen top-[66px] sticky ">
+            <div className="hidden md:flex pl-20 pt-12  col-span-2 flex-col items-center gap-3 h-screen top-[66px] sticky ">
               <div>
                 <Link to={`/users/${author?.username}`}>
                   <img
@@ -206,7 +206,7 @@ export default function Post() {
                 </a>
               </span>
             </div>
-            <div className="p-10 flex-1">
+            <div className="p-10 col-span-12 md:col-span-8">
               <h1 id="title" className="font-bold  text-4xl m-2">
                 {title}
               </h1>
@@ -229,7 +229,9 @@ export default function Post() {
               <RichTextReadOnly content={doc} extensions={extensions} />
               <Comments postId={post._id} />
             </div>
-            <TOC />
+            <div className="[&>nav]:w-auto [&>div]: dark:bg-[#1f2937] col-span-2 md:block hidden h-screen top-[66px] sticky pb-[66px]">
+              <TOC />
+            </div>
           </>
         )}
       </div>

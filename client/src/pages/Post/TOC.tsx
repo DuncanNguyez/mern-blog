@@ -36,7 +36,7 @@ export default function TOC() {
     e.preventDefault();
   }, []);
   return (
-    <Sidebar className="h-screen top-[66px] sticky sidebar" id="">
+    <Sidebar  id="">
       <Sidebar.ItemGroup id="nav-post">
         {toc.map(({ id, title, level }, index) => {
           return (

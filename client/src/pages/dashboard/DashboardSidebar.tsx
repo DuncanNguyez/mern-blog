@@ -28,8 +28,8 @@ export default function DashboardSidebar() {
     }
   }, [dispatch, navigate]);
   return (
-    <Sidebar className="min-h-screen md:top-[66px] md:sticky w-full md:w-56">
-      <Sidebar.Items className="h-screen">
+    <Sidebar className="">
+      <Sidebar.Items>
         <Sidebar.ItemGroup>
           <Link to={"/dashboard/profile"}>
             <Sidebar.Item

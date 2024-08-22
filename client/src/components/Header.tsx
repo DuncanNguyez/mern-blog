@@ -52,12 +52,12 @@ export default function Header() {
           {theme === "dark" ? <FaMoon></FaMoon> : <FaSun></FaSun>}
         </Button>
         {currentUser ? (
-          <Dropdown
+          <Dropdown 
             arrowIcon={false}
             inline
             label={<Avatar alt="user" img={currentUser.imageUrl} rounded />}
           >
-            <Dropdown.Header>
+            <Dropdown.Header className="w-52">
               <span className="font-semibold truncate">
                 {currentUser.username}
               </span>

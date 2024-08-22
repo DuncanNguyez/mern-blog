@@ -52,9 +52,12 @@ export default function MyPosts() {
   const handleDeletePost = useCallback(async () => {
     setShowModal(false);
     try {
-      const res = await fetch(`/api/v1/users/${currentUser._id}/posts/${deleteId}`, {
-        method: "delete",
-      });
+      const res = await fetch(
+        `/api/v1/users/${currentUser._id}/posts/${deleteId}`,
+        {
+          method: "delete",
+        }
+      );
       if (res.ok) {
         const newPosts = posts?.filter((post: any) => {
           return post._id !== deleteId;
@@ -72,7 +75,7 @@ export default function MyPosts() {
     }
   }, [currentUser._id, deleteId, posts]);
   return (
-    <div className="table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
+    <div className="table-auto overflow-auto md:mx-auto p-3 ">
       {posts?.length ? (
         <>
           <Table hoverable={true} className="shadow-md w-full">
