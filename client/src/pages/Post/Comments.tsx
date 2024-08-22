@@ -8,7 +8,7 @@ type Props = {
   postId?: string;
   replyToId?: string;
 };
-interface ICommentContent {
+export interface ICommentContent {
   text?: string;
 }
 export interface IComment {

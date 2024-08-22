@@ -53,12 +53,14 @@ export default function App() {
       async (user) => {
         if (!user) {
           await fetch("/api/v1/auth/sign-out", { method: "post" });
+          await getAuth(app).signOut()
           dispatch(signOutSuccess());
         }
       },
       async (error) => {
         if (error) {
           await fetch("/api/v1/auth/sign-out", { method: "post" });
+          await getAuth(app).signOut()
           dispatch(signOutSuccess());
         }
       }

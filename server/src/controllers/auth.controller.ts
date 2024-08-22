@@ -30,6 +30,7 @@ const signup = async (req: Request, res: Response, next: NextFunction) => {
     delete doc.password;
     const { token, refreshToken } = getTokens({
       _id: doc._id,
+      username:doc.username,
       isAuthor: doc.isAuthor,
     });
     doc.refreshToken = refreshToken;
@@ -59,6 +60,7 @@ const signin = async (req: Request, res: Response, next: NextFunction) => {
     }
     const { token, refreshToken } = getTokens({
       _id: user._id,
+      username:user.username,
       isAuthor: user.isAuthor,
     });
 
@@ -79,6 +81,7 @@ const googleAuth = async (req: Request, res: Response) => {
   if (user) {
     const { token, refreshToken } = getTokens({
       _id: user._id,
+      username:user.username,
       isAuthor: user.isAuthor,
     });
 
@@ -101,7 +104,8 @@ const googleAuth = async (req: Request, res: Response) => {
   });
   const { token, refreshToken } = getTokens({
     _id: newUser._id,
-    isAuthor: newUser.isAuthor,
+      username:newUser.username,
+      isAuthor: newUser.isAuthor,
   });
 
   const doc = newUser._doc;

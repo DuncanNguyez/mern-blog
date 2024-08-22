@@ -99,6 +99,7 @@ export default function Profile() {
     try {
       getAuth(app).signOut();
       await fetch("/api/v1/auth/sign-out", { method: "post" });
+      await getAuth(app).signOut()
       dispatch(signOutSuccess());
       navigate("/sign-in");
     } catch (error) {

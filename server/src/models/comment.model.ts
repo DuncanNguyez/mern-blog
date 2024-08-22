@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
 
-interface ICommentContent {
+export interface ICommentContent {
   text?: string;
 }
 export interface IComment {

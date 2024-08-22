@@ -2,13 +2,16 @@ import { NextFunction, Request, Response } from "express";
 import { CusRequest } from "./auth.controller";
 import Comment, { IComment } from "../models/comment.model";
 import { errorHandler } from "../utils/error";
-import { FilterQuery } from "mongoose";
+import mongoose, { FilterQuery } from "mongoose";
+import Notification from "../models/notification.model";
+import Post from "../models/post.model";
 
 const createCommentByUser = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const session = await mongoose.startSession();
   try {
     const cReq = req as CusRequest;
     const user = cReq.user;
@@ -16,11 +19,59 @@ const createCommentByUser = async (
     if (user._id !== comment.userId) {
       return next(errorHandler(403, "Access is not allowed"));
     }
+    session.startTransaction();
     const commentCreated = await Comment.create(comment);
     const doc = commentCreated._doc as IComment;
+    const post = await Post.findById(comment.postId, {
+      path: true,
+      authorId: true,
+    }).lean();
+    if (doc.userId !== doc.postId) {
+      await Notification.create({
+        userId: post?.authorId,
+        relatedTo: {
+          comment: {
+            _id: commentCreated._id,
+            content: commentCreated.content,
+          },
+          user: {
+            username: user.username,
+            _id: user._id,
+          },
+          post: { _id: post?._id, path: post?.path },
+        },
+        message: `Replied from ${user.username}`,
+        link: `/posts/${post?.path}#${commentCreated?._id}`,
+      });
+    }
+    if (commentCreated.replyToId) {
+      const replyToComment = await Comment.findById(commentCreated.replyToId);
+      if (doc.userId !== replyToComment?.userId) {
+        await Notification.create({
+          userId: replyToComment?.userId,
+          relatedTo: {
+            comment: {
+              _id: commentCreated._id,
+              content: commentCreated.content,
+            },
+            user: {
+              username: user.username,
+              _id: user._id,
+            },
+            post: { _id: post?._id, path: post?.path },
+          },
+          message: `Replied from ${user.username}`,
+          link: `/posts/${post?.path}#${commentCreated?._id}`,
+        });
+      }
+    }
+    session.commitTransaction();
     return res.status(201).json(doc);
   } catch (error) {
+    session.abortTransaction();
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 const deleteCommentByUser = async (
@@ -59,7 +110,7 @@ const getCommentsByPost = async (
       },
       {},
       {
-        sort: { voteNumber: -1, createdAt: -1 },
+        sort: { voteNumber: -1, createdAt: 1 },
         skip,
         limit,
       } as FilterQuery<IComment>
@@ -87,7 +138,7 @@ const getCommentsByComment = async (
       },
       {},
       {
-        sort: { voteNumber: -1, createdAt: -1 },
+        sort: { voteNumber: -1, createdAt: 1 },
         skip,
         limit,
       } as FilterQuery<IComment>
@@ -105,7 +156,9 @@ const upVoteComment = async (
   res: Response,
   next: NextFunction
 ) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const cReq = req as CusRequest;
     const id = req.params.id;
     const comment = await Comment.findById(id).lean();
@@ -125,9 +178,32 @@ const upVoteComment = async (
       },
       { new: true }
     );
+    if (commentUpdated) {
+      const post = await Post.findById(commentUpdated?.postId, { path: true });
+      await Notification.create({
+        userId: commentUpdated?.userId,
+        relatedTo: {
+          comment: {
+            _id: commentUpdated._id,
+            content: commentUpdated.content,
+          },
+          user: {
+            username: cReq.user.username,
+            _id: cReq.user._id,
+          },
+          post: { _id: post?._id, path: post?.path },
+        },
+        message: `Your comment received upvote from ${cReq.user.username}`,
+        link: `/posts/${post?.path}#${commentUpdated?._id}`,
+      });
+    }
+    session.commitTransaction();
     return res.status(200).json(commentUpdated);
   } catch (error) {
+    session.abortTransaction();
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 const downVoteComment = async (
@@ -155,6 +231,25 @@ const downVoteComment = async (
       },
       { new: true }
     );
+    if (commentUpdated) {
+      const post = await Post.findById(commentUpdated?.postId, { path: true });
+      await Notification.create({
+        userId: commentUpdated?.userId,
+        relatedTo: {
+          comment: {
+            _id: commentUpdated._id,
+            content: commentUpdated.content,
+          },
+          user: {
+            username: cReq.user.username,
+            _id: cReq.user._id,
+          },
+          post: { _id: post?._id, path: post?.path },
+        },
+        message: `Your comment received downvote from ${cReq.user.username}`,
+        link: `/posts/${post?.path}#${commentUpdated?._id}`,
+      });
+    }
     return res.status(200).json(commentUpdated);
   } catch (error) {
     next(error);

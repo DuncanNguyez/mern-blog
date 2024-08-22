@@ -170,7 +170,7 @@ const CommentItem = memo((props: Props) => {
   return (
     <>
       {!error && (
-        <Timeline.Item className="mb-6">
+        <Timeline.Item id={_id} className="mb-6">
           <Timeline.Point className="[&>*]:!bg-purple-400 [&>*]:!-left-[7px] " />
           <Timeline.Content>
             <Timeline.Title>

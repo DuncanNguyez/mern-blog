@@ -6,6 +6,11 @@ import Bookmarks from "./Bookmarks/Bookmarks";
 
 export default [
   {
+    path: "",
+    element: <MyPosts />,
+    onlyAuthor: true,
+  },
+  {
     path: "profile",
     element: <Profile />,
   },
@@ -19,6 +24,7 @@ export default [
     element: <MyPosts />,
     onlyAuthor: true,
   },
+
   {
     path: "posts/edit/:path",
     element: <EditPost />,

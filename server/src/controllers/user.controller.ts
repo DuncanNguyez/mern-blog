@@ -9,6 +9,7 @@ import { CusRequest } from "./auth.controller";
 import Post from "../models/post.model";
 import mongoose from "mongoose";
 import { elsClient } from "../elasticsearch";
+import Notification from "../models/notification.model";
 
 const { find } = lodash;
 const updateUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -118,4 +119,48 @@ const bookmarkPost = async (
     session.endSession();
   }
 };
-export { updateUser, deleteUser, getUser, bookmarkPost };
+
+const getNotification = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const cReq = req as CusRequest;
+    const { user } = cReq;
+    const { fromCreatedAt } = req.query;
+    const notifications = await Notification.find({
+      userId: user._id,
+      createdAt: { $gte: new Date(fromCreatedAt as string).toISOString() },
+    });
+    return res.status(200).json(notifications);
+  } catch (error) {
+    next(error);
+  }
+};
+const readNotification = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const cReq = req as CusRequest;
+    const { ids } = req.body;
+    const { user } = cReq;
+    await Notification.updateMany(
+      { userId: user._id, _id: { $in: ids } },
+      { $set: { read: true } }
+    );
+    return res.status(200).json({ message: "Success" });
+  } catch (error) {
+    next(error);
+  }
+};
+export {
+  updateUser,
+  deleteUser,
+  getUser,
+  bookmarkPost,
+  getNotification,
+  readNotification,
+};

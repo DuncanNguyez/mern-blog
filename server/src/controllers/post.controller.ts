@@ -403,7 +403,7 @@ const search = async (req: Request, res: Response, next: NextFunction) => {
           },
           textContent: {
             fragment_size: 500,
-            number_of_fragments: 2,
+            number_of_fragments: 1,
           },
         },
         pre_tags: ["<em class='search-hightlight'>"],

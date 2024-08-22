@@ -22,6 +22,7 @@ export default function DashboardSidebar() {
       getAuth(app).signOut();
       await fetch("/api/v1/auth/sign-out", { method: "post" });
       dispatch(signOutSuccess());
+      await getAuth(app).signOut()
       navigate("/sign-in");
     } catch (error) {
       console.log(error);
