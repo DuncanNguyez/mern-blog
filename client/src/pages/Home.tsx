@@ -40,10 +40,7 @@ export default function Home() {
           setSkip((currentSkip === 0 ? currentSkip : skip) + 5);
           if (data.length < limit) setIsMore(false);
           setLoading(false);
-          return setPost([
-            ...(currentSkip && posts?.length ? posts : []),
-            ...data,
-          ]);
+          return setPost([...(currentSkip === 0 ? [] : posts || []), ...data]);
         }
       } catch (error) {
         console.log(error);
@@ -54,7 +51,7 @@ export default function Home() {
     [hashtagsSearch, posts, skip]
   );
   useEffect(() => {
-    if (!posts) getPosts();
+    if (!posts) getPosts(0);
   }, [getPosts, posts]);
   const handleChangeHashtagsSearch = useCallback(
     async (e: React.MouseEvent<HTMLElement>) => {
