@@ -11,51 +11,57 @@ const Search = () => {
   const limit = 10;
   const [loading, setLoading] = useState<boolean>(true);
   const s = useSearchParams()[0].get("s") as string;
-  const search = useCallback(async () => {
-    setLoading(true);
-    try {
-      const query = new URLSearchParams({
-        s,
-        limit: limit + "",
-        skip: skip + "",
-      }).toString();
-      const res = await fetch(`/api/v1/posts/search?${query}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.hits.hits.length < limit) setIsMore(false);
-        setSkip(skip + data.length);
-        setHits(data.hits.hits);
+
+  const search = useCallback(
+    async (prevData: Array<ELSHit>, s: string) => {
+      setLoading(true);
+      try {
+        const query = new URLSearchParams({
+          s,
+          limit: limit + "",
+          skip: skip + "",
+        }).toString();
+
+        const res = await fetch(`/api/v1/posts/search?${query}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.hits.hits.length < limit) setIsMore(false);
+          setSkip(skip + data.hits.hits.length);
+          setHits([...prevData, ...data.hits.hits]);
+        }
+      } catch (error: any) {
+        console.log(error.message);
       }
-    } catch (error: any) {
-      console.log(error.message);
-    }
-    setLoading(false);
-  }, [s, skip]);
+      setLoading(false);
+    },
+    [skip]
+  );
+
   useEffect(() => {
-    search();
+    const searchEle = document.getElementById("searchInput");
+    if (searchEle) {
+      const research = (e: KeyboardEvent) => {
+        if (e.key === "Enter") {
+          search([], (e.target as HTMLInputElement).value);
+        }
+      };
+      searchEle.onkeydown = research;
+      // searchEle.addEventListener("keydown", research);
+      // return searchEle.removeEventListener("keydown", research);
+    }
   }, [search]);
+
+  useEffect(() => {
+    if (hits.length === 0 && isMore) search([], s);
+  }, [hits.length, isMore, s, search]);
   return (
     <div className="container m-auto min-h-screen w-full">
+      <div className="text-center text-2xl font-bold mt-10">Search Result</div>
       {hits && (
-        <div className="p-20  ">
-          {hits
-            ?.map((hit) => {
-              const path = `/posts/${hit._source.path}`;
-              const textContents =
-                hit.highlight?.textContent?.map((item) => {
-                  return (
-                    <LinkSearchItem key={item} path={path} innerHTML={item} />
-                  );
-                }) || [];
-              const titles =
-                hit.highlight?.title?.map((item) => {
-                  return (
-                    <LinkSearchItem key={item} path={path} innerHTML={item} />
-                  );
-                }) || [];
-              return [...titles, ...textContents];
-            })
-            .flat()}
+        <div className="px-20 mt-10  ">
+          {hits?.map((hit, index) => {
+            return <LinkSearchItem key={hit._source.path + index} hit={hit} />;
+          })}
         </div>
       )}
       {loading && (
@@ -70,7 +76,7 @@ const Search = () => {
       )}
       {isMore && (
         <div className="flex justify-center m-5">
-          <Button onClick={() => search()} color={"gray"}>
+          <Button onClick={() => search(hits,s)} color={"gray"}>
             Show more
           </Button>
         </div>

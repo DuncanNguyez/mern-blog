@@ -387,13 +387,13 @@ const search = async (req: Request, res: Response, next: NextFunction) => {
         multi_match: {
           query: s,
           fields: [
-            "title",
-            "title._2gram",
-            "title._3gram",
+            "hashtags^3",
+            "title^2",
+            "title._2gram^2",
             "textContent",
             "textContent._2gram",
-            "textContent._3gram",
           ],
+          fuzziness: "AUTO",
         },
       },
       highlight: {
@@ -405,11 +405,14 @@ const search = async (req: Request, res: Response, next: NextFunction) => {
             fragment_size: 500,
             number_of_fragments: 1,
           },
+          hashtags: {
+            number_of_fragments: 3,
+          },
         },
         pre_tags: ["<em class='search-hightlight'>"],
         post_tags: ["</em> "],
       },
-      _source: ["path"],
+      _source: ["path", "title"],
       ...(limit ? { size: limit } : {}),
       ...(skip ? { from: skip } : {}),
     });

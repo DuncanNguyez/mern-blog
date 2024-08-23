@@ -14,8 +14,9 @@ export type ELSHit = {
   highlight: {
     textContent: Array<string>;
     title: Array<string>;
+    hashtags: Array<string>;
   };
-  _source: { path: string };
+  _source: { path: string; title: string };
 };
 
 const SearchCom = () => {
@@ -23,35 +24,53 @@ const SearchCom = () => {
   const [hits, setHits] = useState<Array<ELSHit>>();
   const [loading, setLoading] = useState<boolean>(true);
   const [s, setS] = useState<string>();
-
+  const [timeoutId, setTimeoutId] = useState<any>();
   const navigate = useNavigate();
 
-  const handleSearch = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
-    setLoading(true);
-    const value = e.target.value;
-    setS(value);
-    if (value.length > 0) {
-      setShowModal(true);
-      try {
-        const res = await fetch(`/api/v1/posts/search?s=${value}`);
-        if (res.ok) {
-          const data = await res.json();
-          setHits(data.hits.hits);
-        }
-      } catch (error: any) {
-        console.log(error.message);
+  const searching = useCallback(async (s: string) => {
+    try {
+      const res = await fetch(`/api/v1/posts/search?s=${s}`);
+      if (res.ok) {
+        const data = await res.json();
+        setHits(data.hits.hits);
       }
-    } else {
-      setHits([]);
+    } catch (error: any) {
+      console.log(error.message);
     }
-    setLoading(false);
   }, []);
+  const handleSearch = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setLoading(true);
+      const value = e.target.value;
+
+      if (value.length > 0) {
+        setShowModal(true);
+        setS(value);
+        // searching if have new word
+        if (value.split(" ").length !== s?.split(" ").length) {
+          searching(value);
+        } else {
+          // debounce
+          clearTimeout(timeoutId);
+          const newId = setTimeout(() => searching(value), 600);
+          setTimeoutId(newId);
+          setLoading(false);
+        }
+      } else {
+        setHits([]);
+      }
+      setLoading(false);
+    },
+    [s, searching, timeoutId]
+  );
+
   const handleSubmit = useCallback(
     async (e: FormEvent) => {
       e.preventDefault();
       if (!s) {
         return;
       }
+      setShowModal(false);
       navigate(`/search?s=${s}`);
     },
     [navigate, s]
@@ -85,9 +104,10 @@ const SearchCom = () => {
     <form
       id="search"
       onSubmit={handleSubmit}
-      className="flex-1 mx-16 relative "
+      className="flex-1 mx-16 relative break-words"
     >
       <TextInput
+        id="searchInput"
         onChange={handleSearch}
         type="text"
         placeholder="Search..."
@@ -111,32 +131,11 @@ const SearchCom = () => {
               setShowModal(false);
             }}
           >
-            {hits
-              ?.map((hit) => {
-                const path = `/posts/${hit._source.path}`;
-                const textContents =
-                  hit.highlight?.textContent?.map((item, index) => {
-                    return (
-                      <LinkSearchItem
-                        key={item + index}
-                        path={path}
-                        innerHTML={item}
-                      />
-                    );
-                  }) || [];
-                const titles =
-                  hit.highlight?.title?.map((item, index) => {
-                    return (
-                      <LinkSearchItem
-                        key={item + index}
-                        path={path}
-                        innerHTML={item}
-                      />
-                    );
-                  }) || [];
-                return [...titles, ...textContents];
-              })
-              .flat()}
+            {hits?.map((hit, index) => {
+              return (
+                <LinkSearchItem key={hit._source.path + index} hit={hit} />
+              );
+            })}
           </div>
         ) : (
           ""

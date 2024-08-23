@@ -144,7 +144,7 @@ export default function Post() {
       )}
       <div className="min-h-screen break-words grid grid-cols-12 ">
         {!post ? (
-          <h1 className="m-auto">POST NOT FOUND</h1>
+          <h1 className="m-auto col-span-12">POST NOT FOUND</h1>
         ) : (
           <>
             <div className="hidden md:flex pl-20 pt-12  col-span-2 flex-col items-center gap-3 h-screen top-[66px] sticky ">
