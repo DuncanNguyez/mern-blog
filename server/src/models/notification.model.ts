@@ -9,11 +9,17 @@ type RelatedTo = {
   user?: { username: string; _id: string };
   post?: { _id: string; path: string };
 };
+type NotificationType =
+  | "voteComment"
+  | "votePost"
+  | "commentPost"
+  | "replyComment";
 export interface INotification {
   _id?: string;
   link: string;
   userId: string;
   relatedTo: RelatedTo;
+  type: NotificationType;
   message: string;
   read: boolean;
 }
@@ -32,6 +38,10 @@ const notificationSchema = new Schema<INotification>(
         _id: String,
       },
       post: { _id: String, path: String },
+    },
+    type: {
+      type: String,
+      enum: ["voteComment", "votePost", "commentPost", "replyComment"],
     },
     message: { type: String, required: true },
     read: { type: Boolean, default: false },

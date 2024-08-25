@@ -76,7 +76,7 @@ export default function Comments(props: Props) {
     [comment, commentsNow, currentUser]
   );
   return (
-    <div id="comment" className="pt-[76px] ">
+    <div id="comment" className="pt-[76px] w-full">
       <TextInput
         onChange={handleChangeComment}
         onKeyDown={handleAddComment}

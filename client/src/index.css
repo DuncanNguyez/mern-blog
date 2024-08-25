@@ -9,21 +9,23 @@ html {
   top: 66.6px !important;
 }
 
-.dark div::-webkit-scrollbar {
+.dark *::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
   background-color: #2e2e4b;
 }
 
-.dark div::-webkit-scrollbar-thumb {
+.dark *::-webkit-scrollbar-thumb {
   background-color: #555;
 }
 
-.light div::-webkit-scrollbar {
+.light *::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
   background-color: #dfdede;
 }
 
-.light div::-webkit-scrollbar-thumb {
+.light *::-webkit-scrollbar-thumb {
   background-color: #a2a2a2;
 }
 
@@ -85,6 +87,7 @@ ol {
   padding: 0.5rem;
   font: inherit;
   grid-area: 1 / 1 / 2 / 1;
+  width: var(--somewidth, 100%);
 }
 
 /* CSS for Lowlight.js Syntax Highlighting */

@@ -25,6 +25,7 @@ const CommentItem = memo((props: Props) => {
   const {
     _id,
     postId,
+    replyToId,
     userId,
     voteNumber,
     downNumber,
@@ -74,12 +75,17 @@ const CommentItem = memo((props: Props) => {
   const handleChangeComment = useCallback(
     (e: ChangeEvent<HTMLTextAreaElement>) => {
       const text = e.target.value;
+      const growWrap = e.target.closest(".grow-wrap") as HTMLElement;
       setComment({
         postId,
         replyToId: _id,
         userId: currentUser?._id || "",
         content: { text },
       });
+      if (growWrap) {
+        const width = e.target.offsetWidth;
+        growWrap.style.setProperty("--somewidth", width + "px");
+      }
     },
     [_id, currentUser?._id, postId]
   );
@@ -166,13 +172,16 @@ const CommentItem = memo((props: Props) => {
       alert("You need to login in to vote");
     }
   }, [_id, currentUser?._id]);
-
+  const isRootComment = !replyToId;
   return (
     <>
       {!error && (
-        <Timeline.Item id={_id} className="mb-6">
+        <Timeline.Item
+          id={_id}
+          className={`mb-6   pl-1.5 ${isRootComment ? "overflow-auto" : ""}`}
+        >
           <Timeline.Point className="[&>*]:!bg-purple-400 [&>*]:!-left-[7px] " />
-          <Timeline.Content>
+          <Timeline.Content className="min-w-60">
             <Timeline.Title>
               <Link to={`/users/${user?.username}`}>
                 <div className="flex gap-3 items-center ">
@@ -186,7 +195,7 @@ const CommentItem = memo((props: Props) => {
                 </div>
               </Link>
             </Timeline.Title>
-            <Timeline.Body>{content.text}</Timeline.Body>
+            <Timeline.Body className="w-full">{content.text}</Timeline.Body>
             <div className="flex gap-10 items-center m-2">
               <div className="flex gap-2">
                 <span

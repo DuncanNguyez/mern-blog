@@ -1,49 +1,88 @@
-import express, { NextFunction, Request, Response } from "express";
-import dotenv from "dotenv";
-import swaggerUi from "swagger-ui-express";
-import cookieParser from "cookie-parser";
-import path from "path";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import app from "./app";
+import { errorHandler } from "./utils/error";
+import jwt from "jsonwebtoken";
+import getTokens from "./utils/getTokens";
 
-import connectDb from "./utils/connectDb";
-import userRouter from "./routes/user.route";
-import authRouter from "./routes/auth.route";
-import postRouter from "./routes/post.route";
-import commentRouter from "./routes/comment.route";
-import { swaggerDocument } from "./swagger";
-import { elsConnect } from "./elasticsearch";
+export const httpServer = createServer(app);
 
-dotenv.config();
-connectDb();
-elsConnect();
-const app = express();
-app.use(express.json());
-app.use(cookieParser());
-
-app.use("/api/v1/users", userRouter);
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/posts", postRouter);
-app.use("/api/v1/comments", commentRouter);
-app.use("/api/*", (req, res) => res.status(404).end());
-
-app.use(express.static(path.join(__dirname, "swagger/resource")));
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use(express.static(path.join(__dirname, "../../client/dist")));
-app.get("/*", (req, res) => {
-  return res.sendFile(path.join(__dirname, "../../client/dist", "index.html"));
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+  },
+  cookie: true,
 });
 
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.debug(err);
-  const statusCode = err.statusCode || 500;
-  const message = err.message || "Internal server error!";
-  res.status(statusCode).json({
-    success: false,
-    statusCode,
-    message,
+io.on("connection", (socket) => {
+  const count = io.engine.clientsCount;
+  console.log("users: " + count);
+  const token = socket.handshake.auth.refreshToken;
+
+  if (token) {
+    jwt.verify(
+      token,
+      process.env.JWT_SECRET as string,
+      (err: any, payload: any) => {
+        if (err) {
+          return;
+        }
+        delete payload.exp;
+        delete payload.iat;
+        const tokens = getTokens(payload);
+        socket.join(payload._id);
+        socket.emit("connected", JSON.stringify(tokens));
+      }
+    );
+  }
+
+  socket.use(async (e, next) => {
+    const token = socket.handshake.auth.access_token;
+    if (token) {
+      try {
+        const result = (await new Promise((resolve, reject) => {
+          jwt.verify(
+            token,
+            process.env.JWT_SECRET as string,
+            (err: any, payload: any) => {
+              if (err) {
+                reject(err);
+              }
+              socket.handshake.auth = { user: payload };
+              resolve(payload);
+            }
+          );
+        })) as { _id: string; username: string; isAuthor: boolean };
+        if (result) {
+          socket.join(result._id);
+          return next();
+        }
+        next(errorHandler(401, "unauthorized"));
+      } catch (error: any) {
+        console.log(error.message);
+        next(errorHandler(401, "unauthorized"));
+      }
+    } else {
+      next(errorHandler(401, "unauthorized"));
+    }
   });
-  next();
+
+  // socket.on("error", (err) => {
+  //   const error = err as CustomError;
+  //   if (error && error.statusCode === 401) {
+  //     socket.disconnect();
+  //   }
+  // });
 });
 
-app.listen(3000, () => {
+io.engine.on("connection_error", (err) => {
+  // console.log(err.req);      // the request object
+  // console.log(err.code);     // the error code, for example 1
+  console.log(err.message); // the error message, for example "Session ID unknown"
+  // console.log(err.context);  // some additional error context
+});
+
+httpServer.listen(3000, () => {
   console.log("Server is running on port: 3000");
 });
+export { io };

@@ -1,10 +1,12 @@
+import { io } from "socket.io-client";
 import { Dropdown } from "flowbite-react";
-import { Link, useNavigate } from "react-router-dom";
-import { app } from "../../firebase.ts";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
-import { signOutSuccess, User } from "../../redux/user/userSlice.ts";
 import { useCallback, useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+
+import { app } from "../../firebase.ts";
+import { signOutSuccess, User } from "../../redux/user/userSlice.ts";
 import { ICommentContent } from "../../pages/Post/Comments.tsx";
 
 type Props = {
@@ -30,10 +32,11 @@ export interface INotification {
 const UserNav = ({ user }: Props) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const currentUser: User = useSelector((state: any) => state.user).currentUser;
 
   const [notifications, setNotifications] = useState<Array<INotification>>([]);
   const [needRead, setNeedRead] = useState<number>(0);
-
+  const { pathname } = useLocation();
   const handleSignOut = useCallback(async () => {
     try {
       getAuth(app).signOut();
@@ -96,9 +99,35 @@ const UserNav = ({ user }: Props) => {
         }
       }
       navigate(link);
+      if (pathname === link.replace(/#.*/, "")) {
+        window.location.reload();
+      }
     },
-    [navigate, user.username]
+    [navigate, pathname, user.username]
   );
+
+  useEffect(() => {
+    const socket = io("http://localhost:3000", {
+      auth: { refreshToken: currentUser?.refreshToken },
+      retries: 5,
+      ackTimeout: 10000,
+    });
+    socket.on("connect", () => {
+      console.log(socket.id);
+    });
+    socket.on("connected", (payload) => {
+      const object = JSON.parse(payload);
+      socket.auth = { access_token: object.token };
+    });
+    socket.on("notification", (payload) => {
+      setNotifications((prev) => [payload, ...prev]);
+      setNeedRead((prev) => ++prev);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, [currentUser]);
+
   return (
     <div className="break-words">
       <Dropdown
@@ -129,23 +158,31 @@ const UserNav = ({ user }: Props) => {
           <Dropdown.Item>Profile</Dropdown.Item>
         </Link>
         <Dropdown.Divider />
-        {notifications.length > 0 &&
-          notifications.map((notification: INotification) => {
-            const { link, _id, message, read } = notification;
-            return (
-              <Link
-                to={link}
-                key={_id}
-                onClick={(e) => handleToNotification(e, link, _id || "", read)}
-              >
-                <div className={read ? "" : "dark:bg-[#3e3e40]"}>
-                  <Dropdown.Item>
-                    <span className="text-[10px]">{message}</span>
-                  </Dropdown.Item>
-                </div>
-              </Link>
-            );
-          })}
+        <div className="max-h-60 overflow-auto">
+          {notifications.length > 0 &&
+            notifications.map((notification: INotification) => {
+              const { link, _id, message, read } = notification;
+              return (
+                <Link
+                  to={link}
+                  key={_id}
+                  onClick={(e) =>
+                    handleToNotification(e, link, _id || "", read)
+                  }
+                >
+                  <div className={read ? "" : "bg-[#3e3e40]"}>
+                    <Dropdown.Item>
+                      <span
+                        className={`text-[10px] ${read ? "" : "text-gray-400"}`}
+                      >
+                        {message}
+                      </span>
+                    </Dropdown.Item>
+                  </div>
+                </Link>
+              );
+            })}
+        </div>
         <Dropdown.Divider />
         <Dropdown.Item onClick={handleSignOut}>
           <span className="text-red-500">Sign out</span>

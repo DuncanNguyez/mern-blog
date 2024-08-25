@@ -58,7 +58,7 @@ const CommentTree = memo((props: Props) => {
   }, [getComments]);
 
   return (
-    <div className=" mt-8">
+    <div className={`mt-8 w-full`}>
       <Timeline className="border-l-2  border-purple-300   p-l-10 w-full">
         {commentsNow.length !== 0 &&
           !error &&

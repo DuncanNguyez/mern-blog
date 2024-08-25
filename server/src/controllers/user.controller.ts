@@ -129,10 +129,14 @@ const getNotification = async (
     const cReq = req as CusRequest;
     const { user } = cReq;
     const { fromCreatedAt } = req.query;
-    const notifications = await Notification.find({
-      userId: user._id,
-      createdAt: { $gte: new Date(fromCreatedAt as string).toISOString() },
-    });
+    const notifications = await Notification.find(
+      {
+        userId: user._id,
+        createdAt: { $gte: new Date(fromCreatedAt as string).toISOString() },
+      },
+      {},
+      { sort: { createdAt: -1 } }
+    );
     return res.status(200).json(notifications);
   } catch (error) {
     next(error);

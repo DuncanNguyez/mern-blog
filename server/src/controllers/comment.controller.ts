@@ -5,6 +5,7 @@ import { errorHandler } from "../utils/error";
 import mongoose, { FilterQuery } from "mongoose";
 import Notification from "../models/notification.model";
 import Post from "../models/post.model";
+import { io } from "..";
 
 const createCommentByUser = async (
   req: Request,
@@ -26,8 +27,8 @@ const createCommentByUser = async (
       path: true,
       authorId: true,
     }).lean();
-    if (doc.userId !== doc.postId) {
-      await Notification.create({
+    if (commentCreated && commentCreated.userId !== post?.authorId) {
+      const notification = await Notification.create({
         userId: post?.authorId,
         relatedTo: {
           comment: {
@@ -40,14 +41,19 @@ const createCommentByUser = async (
           },
           post: { _id: post?._id, path: post?.path },
         },
+        type: "commentPost",
         message: `Replied from ${user.username}`,
         link: `/posts/${post?.path}#${commentCreated?._id}`,
       });
+      io.to(notification.userId).emit("notification", notification);
     }
-    if (commentCreated.replyToId) {
+    if (
+      commentCreated.replyToId &&
+      commentCreated.replyToId !== commentCreated.userId
+    ) {
       const replyToComment = await Comment.findById(commentCreated.replyToId);
       if (doc.userId !== replyToComment?.userId) {
-        await Notification.create({
+        const notification = await Notification.create({
           userId: replyToComment?.userId,
           relatedTo: {
             comment: {
@@ -60,9 +66,11 @@ const createCommentByUser = async (
             },
             post: { _id: post?._id, path: post?.path },
           },
+          type: "replyComment",
           message: `Replied from ${user.username}`,
           link: `/posts/${post?.path}#${commentCreated?._id}`,
         });
+        io.to(notification.userId).emit("notification", notification);
       }
     }
     session.commitTransaction();
@@ -178,24 +186,32 @@ const upVoteComment = async (
       },
       { new: true }
     );
-    if (commentUpdated) {
+    if (commentUpdated && commentUpdated.userId !== cReq.user._id) {
       const post = await Post.findById(commentUpdated?.postId, { path: true });
-      await Notification.create({
-        userId: commentUpdated?.userId,
-        relatedTo: {
-          comment: {
-            _id: commentUpdated._id,
-            content: commentUpdated.content,
-          },
-          user: {
-            username: cReq.user.username,
-            _id: cReq.user._id,
-          },
-          post: { _id: post?._id, path: post?.path },
-        },
-        message: `Your comment received upvote from ${cReq.user.username}`,
-        link: `/posts/${post?.path}#${commentUpdated?._id}`,
+      const exists = await Notification.exists({
+        userId: commentUpdated.userId,
+        type: "voteComment",
       });
+      if (!exists) {
+        const notification = await Notification.create({
+          userId: commentUpdated?.userId,
+          relatedTo: {
+            comment: {
+              _id: commentUpdated._id,
+              content: commentUpdated.content,
+            },
+            user: {
+              username: cReq.user.username,
+              _id: cReq.user._id,
+            },
+            post: { _id: post?._id, path: post?.path },
+          },
+          type: "voteComment",
+          message: `Your comment received upvote from ${cReq.user.username}`,
+          link: `/posts/${post?.path}#${commentUpdated?._id}`,
+        });
+        io.to(notification.userId).emit("notification", notification);
+      }
     }
     session.commitTransaction();
     return res.status(200).json(commentUpdated);
@@ -231,24 +247,34 @@ const downVoteComment = async (
       },
       { new: true }
     );
-    if (commentUpdated) {
-      const post = await Post.findById(commentUpdated?.postId, { path: true });
-      await Notification.create({
-        userId: commentUpdated?.userId,
-        relatedTo: {
-          comment: {
-            _id: commentUpdated._id,
-            content: commentUpdated.content,
-          },
-          user: {
-            username: cReq.user.username,
-            _id: cReq.user._id,
-          },
-          post: { _id: post?._id, path: post?.path },
-        },
-        message: `Your comment received downvote from ${cReq.user.username}`,
-        link: `/posts/${post?.path}#${commentUpdated?._id}`,
+    if (commentUpdated && commentUpdated.userId !== cReq.user._id) {
+      const exists = await Notification.exists({
+        userId: commentUpdated.userId,
+        type: "voteComment",
       });
+      if (!exists) {
+        const post = await Post.findById(commentUpdated?.postId, {
+          path: true,
+        });
+        const notification = await Notification.create({
+          userId: commentUpdated?.userId,
+          relatedTo: {
+            comment: {
+              _id: commentUpdated._id,
+              content: commentUpdated.content,
+            },
+            user: {
+              username: cReq.user.username,
+              _id: cReq.user._id,
+            },
+            post: { _id: post?._id, path: post?.path },
+          },
+          type: "voteComment",
+          message: `Your comment received downvote from ${cReq.user.username}`,
+          link: `/posts/${post?.path}#${commentUpdated?._id}`,
+        });
+        io.to(notification.userId).emit("notification", notification);
+      }
     }
     return res.status(200).json(commentUpdated);
   } catch (error) {

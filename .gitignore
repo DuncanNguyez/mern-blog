@@ -30,3 +30,4 @@ test.*
 test
 mern-blog.json
 scraper
+yarn.lock   
