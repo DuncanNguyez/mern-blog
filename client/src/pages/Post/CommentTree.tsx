@@ -4,6 +4,7 @@ import { RxDotsHorizontal } from "react-icons/rx";
 import { memo, useCallback, useEffect, useState } from "react";
 import { IComment } from "./Comments";
 import CommentItem from "./CommentItem";
+import { useLocation } from "react-router-dom";
 
 type Props = {
   postId?: string;
@@ -19,6 +20,7 @@ const CommentTree = memo((props: Props) => {
   const [limit, setLimit] = useState<number>(3);
   const [skip, setSkip] = useState<number>(0);
   const [isMore, setIsMore] = useState<boolean>(true);
+  const { pathname } = useLocation();
   const getComments = useCallback(async () => {
     try {
       const queryString = new URLSearchParams({
@@ -50,8 +52,39 @@ const CommentTree = memo((props: Props) => {
 
   // call only one
   useEffect(() => {
-    if (!comments) getComments();
-  }, [comments, getComments]);
+    const getCommentsFirstOnly = async () => {
+      try {
+        const limit = 3;
+        const skip = 0;
+        const queryString = new URLSearchParams({
+          limit,
+          skip,
+          ...(replyToId ? {} : { onlyRoot: true }),
+        } as any).toString();
+        const res = replyToId
+          ? await fetch(`/api/v1/comments/${replyToId}?${queryString}`)
+          : await fetch(`/api/v1/posts/${postId}/comments?${queryString}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.length < limit) {
+            setIsMore(false);
+          }
+          setLimit(limit + 1);
+          setSkip(skip + limit);
+          return setComments(data);
+        }
+        if (res.headers.get("Content-type")?.includes("application/json")) {
+          const data = await res.json();
+          return setError(data.message);
+        }
+        setError(res.statusText);
+      } catch (error: any) {
+        setError(error.message);
+      }
+    };
+    getCommentsFirstOnly();
+    console.log(pathname);
+  }, [pathname, postId, replyToId]);
 
   const handleViewMore = useCallback(() => {
     getComments();
