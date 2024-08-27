@@ -2,10 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import Posts from "../components/Posts";
 import { Post } from "../redux/draft/draftSlice";
 import { Button, Spinner } from "flowbite-react";
+export interface IHashtag {
+  name: string;
+  count: number;
+}
 
 export default function Home() {
   const [posts, setPost] = useState<Array<Post>>();
-  const [hashtags, setHashtags] = useState<Array<string>>([]);
+  const [hashtags, setHashtags] = useState<Array<IHashtag>>([]);
   const [hashtagsSearch, setHashtagsSearch] = useState<Set<string>>(new Set());
   const [skip, setSkip] = useState<number>(0);
   const [isMore, setIsMore] = useState<boolean>(true);
@@ -71,7 +75,7 @@ export default function Home() {
       <div className="text-balance pb-1 bg-gradient-to-r from-indigo-500 from-10% via-[#0ea5e9de] via-30% to-[#0bffae8a] to-90%">
         <h1 className="text-center underline">All Tags</h1>
         <div className=" max-h-52  overflow-auto  gap-2 m-2  px-20 pb-5 pt-0">
-          {hashtags.map((tag) => {
+          {hashtags.map(({ name: tag }) => {
             const onSearch = hashtagsSearch.has(tag);
             return (
               <span
