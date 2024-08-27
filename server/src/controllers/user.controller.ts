@@ -1,17 +1,11 @@
 import { NextFunction, Response, Request } from "express";
 import lodash from "lodash";
-import bcryptjs from "bcryptjs";
 
-import User from "../models/user.model";
 import { errorHandler } from "../utils/error";
 import { userValidation } from "../utils/validation";
 import { CusRequest } from "./auth.controller";
-import Post from "../models/post.model";
-import mongoose from "mongoose";
-import { elsClient } from "../elasticsearch";
-import Notification from "../models/notification.model";
 import userService from "../services/user.service";
-
+import notificationService from "../services/notification.service";
 const { find } = lodash;
 const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -26,13 +20,7 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     if (message) {
       return res.status(400).json({ message });
     }
-    const userUpdated = await User.findByIdAndUpdate(
-      user._id,
-      {
-        $set: { ...body, password: bcryptjs.hashSync(body.password, 10) },
-      },
-      { new: true }
-    ).lean();
+    const userUpdated = await userService.updateUser(id, body);
     if (!userUpdated) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -49,7 +37,7 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     if (id !== (req as CusRequest).user._id) {
       return next(errorHandler(403, "Access is not allowed"));
     }
-    await User.findByIdAndDelete(id);
+    await userService.deleteUser(id);
     return res
       .status(204)
       .json({ success: true, message: "User has been deleted" });
@@ -78,44 +66,17 @@ const bookmarkPost = async (
   res: Response,
   next: NextFunction
 ) => {
-  const cReq = req as CusRequest;
-  const userId = cReq.user._id;
-  if (userId !== (req as CusRequest).user._id) {
-    return next(errorHandler(403, "Access is not allowed"));
-  }
-  const id = req.params.id;
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
-    const user = await User.findOne({ _id: userId, bookmarks: id }).lean();
-    await User.findByIdAndUpdate(
-      userId,
-      !user ? { $addToSet: { bookmarks: id } } : { $pull: { bookmarks: id } }
-    );
-    const postUpdated = await Post.findByIdAndUpdate(
-      id,
-      !user
-        ? { $addToSet: { bookmarks: userId }, $inc: { bookmarkNumber: 1 } }
-        : { $pull: { bookmarks: userId }, $inc: { bookmarkNumber: -1 } },
-      { new: true, projection: { doc: false, bookmarkNumber: 1, bookmarks: 1 } }
-    );
-    session.commitTransaction();
-    if (postUpdated) {
-      elsClient.update({
-        id: postUpdated._id.toString(),
-        index: "post",
-        doc: {
-          bookmarkNumber: postUpdated?.bookmarkNumber,
-          bookmarks: postUpdated?.bookmarks,
-        },
-      });
+    const cReq = req as CusRequest;
+    const userId = cReq.user._id;
+    if (userId !== (req as CusRequest).user._id) {
+      return next(errorHandler(403, "Access is not allowed"));
     }
+    const id = req.params.id;
+    const postUpdated = await userService.bookmarkPost(userId, id);
     return res.status(200).json(postUpdated);
   } catch (error) {
-    session.abortTransaction();
     next(error);
-  } finally {
-    session.endSession();
   }
 };
 
@@ -128,13 +89,9 @@ const getNotification = async (
     const cReq = req as CusRequest;
     const { user } = cReq;
     const { fromCreatedAt } = req.query;
-    const notifications = await Notification.find(
-      {
-        userId: user._id,
-        createdAt: { $gte: new Date(fromCreatedAt as string).toISOString() },
-      },
-      {},
-      { sort: { createdAt: -1 } }
+    const notifications = notificationService.getNotificationByUser(
+      user._id,
+      fromCreatedAt as string
     );
     return res.status(200).json(notifications);
   } catch (error) {
@@ -150,10 +107,7 @@ const readNotification = async (
     const cReq = req as CusRequest;
     const { ids } = req.body;
     const { user } = cReq;
-    await Notification.updateMany(
-      { userId: user._id, _id: { $in: ids } },
-      { $set: { read: true } }
-    );
+    await notificationService.readNotification(user._id as string, ids);
     return res.status(200).json({ message: "Success" });
   } catch (error) {
     next(error);

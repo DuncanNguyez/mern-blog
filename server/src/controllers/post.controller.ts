@@ -1,16 +1,14 @@
 import lodash from "lodash";
 import { NextFunction, Request, Response } from "express";
 
-import Post, { extractTextFromJSON, IPost } from "../models/post.model";
+import { IPost } from "../models/post.model";
 import generateRandomString from "../utils/generateRandomString";
 import removeDiacritics from "../utils/removeDiacritics";
 import { postValidation } from "../utils/validation";
 import { CusRequest } from "./auth.controller";
-import mongoose, { FilterQuery } from "mongoose";
 import { errorHandler } from "../utils/error";
-import Hashtag from "./../models/hashtag.model";
-import { elsClient } from "../elasticsearch";
-import { StrictPostProperties } from "../elasticsearch/post";
+import postService from "../services/post.service";
+import hashtagService from "../services/hashtag.service";
 
 const { find } = lodash;
 
@@ -37,36 +35,13 @@ const createPostByUser = async (
     return res.status(400).json({ message });
   }
   try {
-    hashtags.map((tag: string) =>
-      Hashtag.findOneAndUpdate(
-        { name: tag },
-        { $set: { name: tag }, $inc: { count: 1 } },
-        { upsert: true }
-      )
-    );
-    const post = await Post.create({ title, path, hashtags, doc, authorId });
-    if (post) {
-      const elsDoc: StrictPostProperties = {
-        title: post.title,
-        path: post.path,
-        textContent: extractTextFromJSON(post.doc),
-        authorId: post.authorId,
-        hashtags: post.hashtags,
-        vote: post.vote,
-        voteNumber: post.voteNumber,
-        down: post.dow,
-        downNumber: post.downNumber,
-        bookmarks: post.bookmarks,
-        bookmarkNumber: post.bookmarkNumber,
-        createdAt: post.createdAt,
-        updatedAt: post.updateAt,
-      };
-      await elsClient.index({
-        index: "post",
-        id: post._id.toString(),
-        document: elsDoc,
-      });
-    }
+    await postService.createPost({
+      title,
+      path,
+      hashtags,
+      doc,
+      authorId,
+    } as IPost);
     return res.status(201).json({ message: "Post created successful" });
   } catch (error) {
     next(error);
@@ -74,7 +49,7 @@ const createPostByUser = async (
 };
 const getPost = async (req: Request, res: Response) => {
   const { path } = req.params;
-  const post = await Post.findOne({ path }).lean();
+  const post = await postService.getPostByPath(path);
   if (!post) {
     return res.status(404).json({ message: "Post not found" });
   }
@@ -99,11 +74,12 @@ const getPostsByUser = async (
           projection = { ...projection, [field]: 1 };
         });
     }
-    const posts = await Post.find({ authorId: id }, projection, {
+    const posts = await postService.getPostsByAuthor(
+      id,
+      projection,
       skip,
-      limit,
-      sort: { createdAt: -1 },
-    } as FilterQuery<IPost>).lean();
+      limit
+    );
     return res.status(200).json(posts);
   } catch (error) {
     next(error);
@@ -114,31 +90,15 @@ const deletePostByUser = async (
   res: Response,
   next: NextFunction
 ) => {
-  const session = await mongoose.startSession();
   try {
     const { id, userId } = req.params;
     if (userId !== (req as CusRequest).user._id) {
       return next(errorHandler(403, "Access is not allowed"));
     }
-    session.startTransaction();
-    const post = await Post.findOneAndDelete({
-      _id: id,
-      authorId: (req as CusRequest).user._id,
-    });
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
-    }
-    post.hashtags.map((tag) =>
-      Hashtag.findOneAndUpdate({ name: tag }, { $inc: { count: -1 } })
-    );
-    await elsClient.delete({ id, index: "post" });
-    session.commitTransaction();
+    await postService.deletePost(id);
     return res.status(200).json({ message: "Post has been deleted" });
   } catch (error) {
-    session.abortTransaction();
     next(error);
-  } finally {
-    session.endSession();
   }
 };
 const editPostByUser = async (
@@ -163,39 +123,14 @@ const editPostByUser = async (
     return res.status(400).json({ message });
   }
   try {
-    const post = await Post.findOneAndUpdate(
-      { _id: id, authorId },
-      { $set: { title, hashtags, doc } }
+    const post = await postService.updatePost(
+      id,
+      title,
+      hashtags,
+      doc,
+      authorId
     );
-    hashtags?.map((tag: string) =>
-      Hashtag.findOneAndUpdate(
-        { name: tag },
-        {
-          $set: { name: tag },
-          ...(post
-            ? {
-                ...(!post.hashtags.includes(tag)
-                  ? { $inc: { count: -1 } }
-                  : {}),
-              }
-            : {}),
-        },
-        { upsert: true }
-      )
-    );
-    const newPost = await Post.findById(id).lean();
-    if (newPost)
-      await elsClient.update({
-        index: "post",
-        id: newPost._id.toString(),
-        doc: {
-          textContent: extractTextFromJSON(newPost.doc),
-          title,
-          updatedAt: newPost.updatedAt,
-          hashtags: newPost.hashtags,
-        },
-      });
-    return res.status(200).json({ message: "Post updated successful" });
+    return res.status(200).json(post);
   } catch (error) {
     next(error);
   }
@@ -204,35 +139,7 @@ const upVotePost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const cReq = req as CusRequest;
     const id = req.params.id;
-    const post = await Post.findById(id).lean();
-    const upVoted = post?.vote?.some((id) => id === cReq.user._id);
-    const downVoted = post?.down?.some((id) => id === cReq.user._id);
-    const postUpdated = await Post.findByIdAndUpdate(
-      id,
-      {
-        $inc: {
-          voteNumber: upVoted ? -1 : 1,
-          ...(downVoted ? { downNumber: -1 } : {}),
-        },
-        ...(upVoted
-          ? { $pull: { vote: cReq.user._id } }
-          : { $addToSet: { vote: cReq.user._id } }),
-        ...(downVoted ? { $pull: { down: cReq.user._id } } : {}),
-      },
-      { new: true, projection: { doc: false } }
-    );
-    if (postUpdated) {
-      await elsClient.update({
-        index: "post",
-        id: postUpdated._id.toString(),
-        doc: {
-          vote: postUpdated.vote,
-          voteNumber: postUpdated.voteNumber,
-          down: postUpdated.down,
-          downNumber: postUpdated.downNumber,
-        },
-      });
-    }
+    const postUpdated = await postService.upvotePost(id, cReq.user._id);
     return res.status(200).json(postUpdated);
   } catch (error) {
     next(error);
@@ -246,35 +153,7 @@ const downVotePost = async (
   try {
     const cReq = req as CusRequest;
     const id = req.params.id;
-    const post = await Post.findById(id).lean();
-    const upVoted = post?.vote?.some((id) => id === cReq.user._id);
-    const downVoted = post?.down?.some((id) => id === cReq.user._id);
-    const postUpdated = await Post.findByIdAndUpdate(
-      id,
-      {
-        $inc: {
-          downNumber: downVoted ? -1 : 1,
-          ...(upVoted ? { voteNumber: -1 } : {}),
-        },
-        ...(downVoted
-          ? { $pull: { down: cReq.user._id } }
-          : { $addToSet: { down: cReq.user._id } }),
-        ...(upVoted ? { $pull: { vote: cReq.user._id } } : {}),
-      },
-      { new: true, projection: { doc: false } }
-    );
-    if (postUpdated) {
-      await elsClient.update({
-        index: "post",
-        id: postUpdated._id.toString(),
-        doc: {
-          vote: postUpdated.vote,
-          voteNumber: postUpdated.voteNumber,
-          down: postUpdated.down,
-          downNumber: postUpdated.downNumber,
-        },
-      });
-    }
+    const postUpdated = await postService.downvotePost(id, cReq.user._id);
     return res.status(200).json(postUpdated);
   } catch (error) {
     next(error);
@@ -301,11 +180,12 @@ const getPostsBookmarksByUser = async (
     return res.status(403).json({ message: "Access is not allowed" });
   }
   try {
-    const posts = await Post.find({ bookmarks: id }, projection, {
+    const posts = await postService.getPostsBookmarksByUser(
+      id,
+      projection,
       skip,
-      limit,
-      sort: { createdAt: -1 },
-    } as FilterQuery<IPost>).lean();
+      limit
+    );
     return res.status(200).json(posts || []);
   } catch (error) {
     next(error);
@@ -313,8 +193,8 @@ const getPostsBookmarksByUser = async (
 };
 const getHashtags = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const hashtags = await Hashtag.find().lean();
-    return res.status(200).json(hashtags.map(({ name }) => name) || []);
+    const hashtags = await hashtagService.getAll();
+    return res.status(200).json(hashtags);
   } catch (error) {
     next(error);
   }
@@ -337,11 +217,7 @@ const getPostsByTag = async (
           projection = { ...projection, [field]: true };
         });
     }
-    const posts = await Post.find({ hashtags: tag }, projection, {
-      skip,
-      limit,
-      sort: { createdAt: -1 },
-    } as FilterQuery<IPost>).lean();
+    const posts = await postService.getPostsByTag(tag, projection, skip, limit);
     return res.status(200).json(posts || []);
   } catch (error) {
     next(error);
@@ -363,15 +239,12 @@ const getPosts = async (req: Request, res: Response, next: NextFunction) => {
           projection = { ...projection, [field]: true };
         });
     }
-    const posts = await Post.find(
-      { ...(hashtags?.length > 0 ? { hashtags: { $all: hashtagsArr } } : {}) },
+    const posts = await postService.getPosts(
       projection,
-      {
-        skip,
-        limit,
-        sort: { createdAt: -1 },
-      } as FilterQuery<IPost>
-    ).lean();
+      skip,
+      limit,
+      hashtagsArr
+    );
     return res.status(200).json(posts);
   } catch (error) {
     next(error);
@@ -381,41 +254,7 @@ const search = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const s = req.query.s as string;
     const { skip, limit } = req.query;
-    const elsRes = await elsClient.search({
-      index: "post",
-      query: {
-        multi_match: {
-          query: s,
-          fields: [
-            "hashtags^3",
-            "title^2",
-            "title._2gram^2",
-            "textContent",
-            "textContent._2gram",
-          ],
-          fuzziness: "AUTO",
-        },
-      },
-      highlight: {
-        fields: {
-          title: {
-            number_of_fragments: 1,
-          },
-          textContent: {
-            fragment_size: 500,
-            number_of_fragments: 1,
-          },
-          hashtags: {
-            number_of_fragments: 3,
-          },
-        },
-        pre_tags: ["<em class='search-hightlight'>"],
-        post_tags: ["</em> "],
-      },
-      _source: ["path", "title"],
-      ...(limit ? { size: limit } : {}),
-      ...(skip ? { from: skip } : {}),
-    });
+    const elsRes = await postService.search(s, skip, limit);
     return res.status(200).json(elsRes);
   } catch (error) {
     next(error);

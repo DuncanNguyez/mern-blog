@@ -1,6 +1,9 @@
 import { model, Schema } from "mongoose";
-
-const Hashtag = model(
+export interface IHashtag {
+  name: string;
+  count: number;
+}
+const Hashtag = model<IHashtag>(
   "hashtag",
   new Schema({
     name: { type: String, unique: true, required: true },
