@@ -10,6 +10,7 @@ import Post from "../models/post.model";
 import mongoose from "mongoose";
 import { elsClient } from "../elasticsearch";
 import Notification from "../models/notification.model";
+import userService from "../services/user.service";
 
 const { find } = lodash;
 const updateUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -61,9 +62,7 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
 const getUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const user =
-      (await User.findOne({ username: id }).lean()) ||
-      (await User.findById(id).lean());
+    const user = await userService.getUser(id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

@@ -11,7 +11,7 @@ const elsConnect = async () => {
   if (!status) {
     throw new Error("ELS cant connected");
   }
-  console.log("ELS connected");
+  console.log("ELS connected"); 
   await prepare();
 };
 const prepare = async () => {

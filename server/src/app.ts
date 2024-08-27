@@ -1,20 +1,15 @@
 import express, { NextFunction, Request, Response } from "express";
-import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import cookieParser from "cookie-parser";
 import path from "path";
 
-import connectDb from "./utils/connectDb";
 import userRouter from "./routes/user.route";
 import authRouter from "./routes/auth.route";
 import postRouter from "./routes/post.route";
 import commentRouter from "./routes/comment.route";
 import { swaggerDocument } from "./swagger";
-import { elsConnect } from "./elasticsearch";
 
-dotenv.config();
-connectDb();
-elsConnect();
+
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
