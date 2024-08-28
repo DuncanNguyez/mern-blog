@@ -30,7 +30,7 @@ export const createPostIndex = () => {
           type: "keyword",
         },
         hashtags: {
-          type: "keyword",
+          type: "search_as_you_type",
         },
         vote: {
           type: "keyword",
