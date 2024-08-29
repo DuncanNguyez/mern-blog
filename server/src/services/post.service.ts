@@ -4,7 +4,10 @@ import { StrictPostProperties } from "../elasticsearch/post";
 import Post, { extractTextFromJSON, IPost } from "../models/post.model";
 import mongoose from "mongoose";
 import Hashtag from "../models/hashtag.model";
-
+import redisClient, { handleRedisError } from "../redis";
+import handleAsyncFn from "../utils/handleAsyncFn";
+import hashObject from "../utils/hashObject";
+const EX = 60 * 5; // 5 minutes
 const createPost = async ({ title, path, hashtags, doc, authorId }: IPost) => {
   const session = await mongoose.startSession();
   try {
@@ -101,7 +104,15 @@ const updatePost = async (
   }
 };
 const getPostByPath = async (path: string) => {
-  return Post.findOne({ path }).lean();
+  return handleRedisError<Promise<IPost>>(async () => {
+    const postString = await redisClient.get(path);
+    if (postString) {
+      return JSON.parse(postString);
+    }
+    const post = await Post.findOne({ path }).lean();
+    handleAsyncFn(() => redisClient.set(path, JSON.stringify(post), { EX }));
+    return post;
+  });
 };
 
 const getPostsByAuthor = async (
@@ -110,11 +121,20 @@ const getPostsByAuthor = async (
   skip: number | string | any,
   limit: number | string | any
 ) => {
-  return Post.find({ authorId }, projection, {
-    skip,
-    limit,
-    sort: { createdAt: -1 },
-  } as FilterQuery<IPost>).lean();
+  return handleRedisError<Promise<Array<IPost>>>(async () => {
+    const key = hashObject({ authorId, projection, skip, limit, type: "post" });
+    const postsString = await redisClient.get(key);
+    if (postsString) {
+      return JSON.parse(postsString);
+    }
+    const posts = await Post.find({ authorId }, projection, {
+      skip,
+      limit,
+      sort: { createdAt: -1 },
+    } as FilterQuery<IPost>).lean();
+    handleAsyncFn(() => redisClient.set(key, JSON.stringify(posts), { EX }));
+    return posts;
+  });
 };
 const deletePost = async (id: string) => {
   const session = await mongoose.startSession();
@@ -209,12 +229,20 @@ const getPostsBookmarksByUser = async (
   skip: number | string | any,
   limit: number | string | any
 ) => {
-  const posts = await Post.find({ bookmarks: userId }, projection, {
-    skip,
-    limit,
-    sort: { createdAt: -1 },
-  } as FilterQuery<IPost>).lean();
-  return posts;
+  return handleRedisError<Promise<Array<IPost>>>(async () => {
+    const key = hashObject({ userId, projection, skip, limit, type: "post" });
+    const postsString = await redisClient.get(key);
+    if (postsString) {
+      return JSON.parse(postsString);
+    }
+    const posts = await Post.find({ bookmarks: userId }, projection, {
+      skip,
+      limit,
+      sort: { createdAt: -1 },
+    } as FilterQuery<IPost>).lean();
+    handleAsyncFn(() => redisClient.set(key, JSON.stringify(posts), { EX }));
+    return posts;
+  });
 };
 const getHashtags = async () => {};
 const getPostsByTag = async (
@@ -223,12 +251,20 @@ const getPostsByTag = async (
   skip: number | string | any,
   limit: number | string | any
 ) => {
-  const posts = await Post.find({ hashtags: tag }, projection, {
-    skip,
-    limit,
-    sort: { createdAt: -1 },
-  } as FilterQuery<IPost>).lean();
-  return posts;
+  return handleRedisError<Promise<Array<IPost>>>(async () => {
+    const key = hashObject({ tag, projection, skip, limit, type: "post" });
+    const postsString = await redisClient.get(key);
+    if (postsString) {
+      return JSON.parse(postsString);
+    }
+    const posts = await Post.find({ hashtags: tag }, projection, {
+      skip,
+      limit,
+      sort: { createdAt: -1 },
+    } as FilterQuery<IPost>).lean();
+    handleAsyncFn(() => redisClient.set(key, JSON.stringify(posts), { EX }));
+    return posts;
+  });
 };
 const getPosts = async (
   projection: ProjectionType<IPost>,
@@ -236,16 +272,24 @@ const getPosts = async (
   limit: any,
   hashtags: string[] = []
 ) => {
-  const posts = await Post.find(
-    { ...(hashtags.length > 0 ? { hashtags: { $all: hashtags } } : {}) },
-    projection,
-    {
-      skip,
-      limit,
-      sort: { createdAt: -1 },
-    } as FilterQuery<IPost>
-  ).lean();
-  return posts;
+  return handleRedisError<Promise<Array<IPost>>>(async () => {
+    const key = hashObject({ projection, skip, limit, hashtags, type: "post" });
+    const postsString = await redisClient.get(key);
+    if (postsString) {
+      return JSON.parse(postsString);
+    }
+    const posts = await Post.find(
+      { ...(hashtags.length > 0 ? { hashtags: { $all: hashtags } } : {}) },
+      projection,
+      {
+        skip,
+        limit,
+        sort: { createdAt: -1 },
+      } as FilterQuery<IPost>
+    ).lean();
+    handleAsyncFn(() => redisClient.set(key, JSON.stringify(posts), { EX }));
+    return posts;
+  });
 };
 const search = async (s: string, skip: any, limit: any) => {
   const elsRes = await elsClient.search({

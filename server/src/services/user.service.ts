@@ -1,13 +1,12 @@
-import { ClientClosedError } from "redis";
 import User, { IUser } from "../models/user.model";
-import redisClient from "../redis";
+import redisClient, { handleRedisError } from "../redis";
 import mongoose from "mongoose";
 import Post from "../models/post.model";
 import { elsClient } from "../elasticsearch";
 import bcryptjs from "bcryptjs";
 const EX = 60 * 5;
 const getUser = async (id: string): Promise<IUser | null> => {
-  try {
+  return handleRedisError<Promise<IUser | null>>(async () => {
     const user = await redisClient.get(id);
     if (!user) {
       const user =
@@ -18,16 +17,7 @@ const getUser = async (id: string): Promise<IUser | null> => {
       return user;
     }
     return JSON.parse(user);
-  } catch (error: any) {
-    console.log(error.message);
-    if (error instanceof ClientClosedError) {
-      redisClient.connect();
-    }
-    const user =
-      (await User.findOne({ username: id }).lean()) ||
-      (await User.findById(id).lean());
-    return user;
-  }
+  });
 };
 const deleteUser = async (id: any) => {
   await User.findByIdAndDelete(id);
@@ -77,4 +67,4 @@ const bookmarkPost = async (userId: string | any, id: string) => {
   }
 };
 
-export default { getUser, bookmarkPost, deleteUser,updateUser };
+export default { getUser, bookmarkPost, deleteUser, updateUser };

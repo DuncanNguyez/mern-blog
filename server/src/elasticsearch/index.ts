@@ -1,17 +1,18 @@
 import { Client } from "@elastic/elasticsearch";
 import { IndicesCreateRequest } from "@elastic/elasticsearch/lib/api/types";
 import { createPostIndex } from "./post";
+const { REDIS_USERNAME: username, REDIS_PASSWORD: password } = process.env;
 
 const elsClient = new Client({
   node: "http://localhost:9200",
-  auth: { username: "elastic", password: "lJ5izNXrTclV79IOHXaC" },
+  auth: { username: username || "elastic", password: password || "" },
 });
 const elsConnect = async () => {
   const status = await elsClient.ping();
   if (!status) {
     throw new Error("ELS cant connected");
   }
-  console.log("ELS connected"); 
+  console.log("ELS connected");
   await prepare();
 };
 const prepare = async () => {
@@ -22,7 +23,7 @@ const createIndex = async (indexCreateRequest: IndicesCreateRequest) => {
     index: indexCreateRequest.index,
   });
   if (!exists) {
-    const res =  await elsClient.indices.create(indexCreateRequest);
+    const res = await elsClient.indices.create(indexCreateRequest);
     console.log(res);
   }
 };

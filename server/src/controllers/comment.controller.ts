@@ -16,7 +16,7 @@ const createCommentByUser = async (
     if (user._id !== comment.userId) {
       return next(errorHandler(403, "Access is not allowed"));
     }
-    const doc = commentService.createCommentByUser(comment, user);
+    const doc = await commentService.createCommentByUser(comment, user);
     return res.status(201).json(doc);
   } catch (error) {
     next(error);

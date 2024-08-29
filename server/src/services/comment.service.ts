@@ -1,21 +1,28 @@
 import mongoose from "mongoose";
 import Comment, { IComment } from "../models/comment.model";
 import Post from "../models/post.model";
+import { FilterQuery } from "mongoose";
 import Notification from "../models/notification.model";
 import { IUser } from "../models/user.model";
 import { io } from "..";
-import { FilterQuery } from "mongoose";
+import hashObject from "../utils/hashObject";
+import redisClient, { handleRedisError } from "../redis";
+import handleAsyncFn from "../utils/handleAsyncFn";
 
+const EX = 60 * 5;
 const createCommentByUser = async (comment: IComment, user: IUser) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
     const commentCreated = await Comment.create(comment);
     const doc = commentCreated._doc as IComment;
-    const post = await Post.findById(comment.postId, {
-      path: true,
-      authorId: true,
-    }).lean();
+    const post = await Post.findByIdAndUpdate(
+      comment.postId,
+      { $inc: { commentNumber: 1 } },
+      {
+        projection: { path: true, authorId: true },
+      }
+    ).lean();
     if (commentCreated && commentCreated.userId !== post?.authorId) {
       const notification = await Notification.create({
         userId: post?.authorId,
@@ -83,38 +90,57 @@ const getCommentsByPost = async (
   skip: any,
   limit: any,
   onlyRoot: boolean
-) => {
-  const comments = await Comment.find(
-    {
-      postId: id,
-      ...(onlyRoot ? { replyToId: { $exists: false } } : {}),
-    },
-    {},
-    {
-      sort: { voteNumber: -1, createdAt: 1 },
-      skip,
-      limit,
-    } as FilterQuery<IComment>
-  ).lean();
-  return comments;
+): Promise<Array<IComment>> => {
+  return handleRedisError(async () => {
+    const key = hashObject({ id, skip, limit, onlyRoot });
+    const commentsString = await redisClient.get(key);
+    if (commentsString) {
+      return JSON.parse(commentsString);
+    } else {
+      const comments = await Comment.find(
+        {
+          postId: id,
+          ...(onlyRoot ? { replyToId: { $exists: false } } : {}),
+        },
+        {},
+        {
+          sort: { voteNumber: -1, createdAt: 1 },
+          skip,
+          limit,
+        } as FilterQuery<IComment>
+      ).lean();
+      handleAsyncFn(() =>
+        redisClient.set(key, JSON.stringify(comments), { EX })
+      );
+      return comments;
+    }
+  });
 };
 const getCommentsByComment = async (
   replyToId: string,
   skip: any,
   limit: any
-) => {
-  const comments = await Comment.find(
-    {
-      replyToId,
-    },
-    {},
-    {
-      sort: { voteNumber: -1, createdAt: 1 },
-      skip,
-      limit,
-    } as FilterQuery<IComment>
-  ).lean();
-  return comments;
+): Promise<Array<IComment>> => {
+  return handleRedisError<Promise<Array<IComment>>>(async () => {
+    const key = hashObject({ replyToId, skip, limit });
+    const commentsString = await redisClient.get(key);
+    if (commentsString) {
+      return JSON.parse(commentsString);
+    }
+    const comments = await Comment.find(
+      {
+        replyToId,
+      },
+      {},
+      {
+        sort: { voteNumber: -1, createdAt: 1 },
+        skip,
+        limit,
+      } as FilterQuery<IComment>
+    ).lean();
+    handleAsyncFn(() => redisClient.set(key, JSON.stringify(comments), { EX }));
+    return comments;
+  });
 };
 const upvoteComment = async (
   id: string,
