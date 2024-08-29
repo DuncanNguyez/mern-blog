@@ -30,7 +30,7 @@ export default function App() {
   const dispatch = useDispatch();
   const currentUser: U = useSelector((state: any) => state.user).currentUser;
   useEffect(() => {
-    getAuth(app).onIdTokenChanged(async () => {
+    const id = setInterval(async () => {
       if (!currentUser?.refreshToken) {
         return;
       }
@@ -45,7 +45,10 @@ export default function App() {
         const data = await resRefresh.json();
         return dispatch(refreshToken(data.refreshToken));
       }
-    });
+      await getAuth(app).signOut();
+      dispatch(signOutSuccess());
+    }, 1000 * 60 * 55);
+    return () => clearInterval(id);
   }, [currentUser?.refreshToken, dispatch]);
 
   useEffect(() => {

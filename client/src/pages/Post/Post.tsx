@@ -31,6 +31,8 @@ export default function Post() {
     downNumber,
     createdAt,
     bookmarks,
+    bookmarkNumber,
+    commentNumber,
   } = post || {};
   const currentUser: User | null = useSelector(
     (state: any) => state.user
@@ -190,19 +192,21 @@ export default function Post() {
                 onClick={handleBookmark}
                 className={`${
                   bookmarked ? " text-purple-800" : ""
-                } hover:bg-[#66625e45] hover:text-purple-600  cursor-pointer p-3  rounded-full`}
+                } hover:bg-[#66625e45] hover:text-purple-600  cursor-pointer p-3  rounded-full text-center`}
               >
                 {bookmarked ? (
                   <FaBookmark className="size-6" />
                 ) : (
                   <FaRegBookmark className="size-6 " />
-                )}
+                )}{" "}
+                <span>{bookmarkNumber}</span>
               </span>
               <span
                 className={` hover:bg-[#66625e45] hover:text-purple-600  cursor-pointer   rounded-full`}
               >
-                <a href="#comment" className="block p-3">
+                <a href="#comment" className="block p-3 text-center">
                   <FaComment className="size-6" />
+                  <span>{commentNumber}</span>
                 </a>
               </span>
             </div>

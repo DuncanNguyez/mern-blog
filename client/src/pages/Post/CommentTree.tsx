@@ -83,7 +83,6 @@ const CommentTree = memo((props: Props) => {
       }
     };
     getCommentsFirstOnly();
-    console.log(pathname);
   }, [pathname, postId, replyToId]);
 
   const handleViewMore = useCallback(() => {
@@ -92,7 +91,7 @@ const CommentTree = memo((props: Props) => {
 
   return (
     <div className={`mt-8 w-full`}>
-      <Timeline className="border-l-2  border-purple-300   p-l-10 w-full">
+      <Timeline className="border-l-2  border-purple-300   p-l-0 w-full">
         {commentsNow.length !== 0 &&
           !error &&
           commentsNow.reverse().map((comment) => {

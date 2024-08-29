@@ -195,7 +195,7 @@ const CommentItem = memo((props: Props) => {
                 </div>
               </Link>
             </Timeline.Title>
-            <Timeline.Body className="w-full">{content.text}</Timeline.Body>
+            <Timeline.Body className="w-full pl-12">{content.text}</Timeline.Body>
             <div className="flex gap-10 items-center m-2">
               <div className="flex gap-2">
                 <span

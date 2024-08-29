@@ -13,6 +13,7 @@ export interface Post {
   downNumber?: number;
   bookmarks?: Array<string>;
   bookmarkNumber?: number;
+  commentNumber?: number;
   doc?: Content;
   createdAt?: string;
   [key: string]: any;
