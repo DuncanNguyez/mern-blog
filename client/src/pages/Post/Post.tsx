@@ -230,7 +230,9 @@ export default function Post() {
                   </div>
                 </div>
               </div>
-              <RichTextReadOnly content={doc} extensions={extensions} />
+              <div className="leading-7">
+                <RichTextReadOnly content={doc} extensions={extensions} />
+              </div>
               <Comments postId={post._id} />
             </div>
             <div className="[&>nav]:w-auto [&>div]: dark:bg-[#1f2937] col-span-2 md:block hidden h-screen top-[66px] sticky pb-[66px]">

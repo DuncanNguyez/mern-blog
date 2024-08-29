@@ -4,6 +4,13 @@
 html {
   scroll-behavior: smooth;
 }
+.MuiBox-root * {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+.MuiBox-root div.node-heading {
+  line-height: normal;
+}
 
 .MuiTiptap-MenuBar-root {
   top: 66.6px !important;
@@ -44,7 +51,7 @@ ol {
   background-color: var(--white);
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="Black" d="M7 10l5 5 5-5z"/></svg>');
   right: 0;
-  top: 0.5rem;
+  top: -0.1px;
   height: 25px;
   padding-top: 0;
   padding-bottom: 0;
