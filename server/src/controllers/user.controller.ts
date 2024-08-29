@@ -89,7 +89,7 @@ const getNotification = async (
     const cReq = req as CusRequest;
     const { user } = cReq;
     const { fromCreatedAt } = req.query;
-    const notifications = notificationService.getNotificationByUser(
+    const notifications = await notificationService.getNotificationByUser(
       user._id,
       fromCreatedAt as string
     );
