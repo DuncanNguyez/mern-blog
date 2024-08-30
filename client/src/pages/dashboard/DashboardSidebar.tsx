@@ -22,7 +22,7 @@ export default function DashboardSidebar() {
       getAuth(app).signOut();
       await fetch("/api/v1/auth/sign-out", { method: "post" });
       dispatch(signOutSuccess());
-      await getAuth(app).signOut()
+      await getAuth(app).signOut();
       navigate("/sign-in");
     } catch (error) {
       console.log(error);
@@ -35,7 +35,7 @@ export default function DashboardSidebar() {
           <Link to={"/dashboard/profile"}>
             <Sidebar.Item
               icon={HiUser}
-              label={currentUser.isAuthor ? "Author" : "User"}
+              label={currentUser.isAdmin ? "Admin" : "User"}
               labelColor="dark"
               active={path === "profile"}
               as="div"
@@ -72,6 +72,20 @@ export default function DashboardSidebar() {
                 as="div"
               >
                 <span className="font-semibold">Bookmarks</span>
+              </Sidebar.Item>
+            </Link>
+          </Sidebar.ItemGroup>
+        )}
+        {currentUser?.isAdmin && (
+          <Sidebar.ItemGroup>
+            <Link to={"/dashboard/users"}>
+              <Sidebar.Item
+                icon={HiDocumentAdd}
+                active={path === "users"}
+                as="div"
+                className="my-1"
+              >
+                <span className="font-semibold">Users</span>
               </Sidebar.Item>
             </Link>
           </Sidebar.ItemGroup>

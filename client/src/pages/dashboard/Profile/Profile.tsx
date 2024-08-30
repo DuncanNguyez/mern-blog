@@ -72,7 +72,7 @@ export default function Profile() {
         return dispatch(updateFailure(error.message));
       }
       try {
-        const res = await fetch(`/api/v1/users/update/${currentUser._id}`, {
+        const res = await fetch(`/api/v1/users/${currentUser._id}`, {
           method: "put",
           headers: {
             "Content-type": "application/json",
@@ -99,7 +99,7 @@ export default function Profile() {
     try {
       getAuth(app).signOut();
       await fetch("/api/v1/auth/sign-out", { method: "post" });
-      await getAuth(app).signOut()
+      await getAuth(app).signOut();
       dispatch(signOutSuccess());
       navigate("/sign-in");
     } catch (error) {
@@ -228,6 +228,7 @@ export default function Profile() {
           <Alert color="failure">{imageFileUploadError}</Alert>
         )}
         <TextInput
+          disabled
           type="text"
           id="username"
           placeholder="username"
@@ -235,6 +236,7 @@ export default function Profile() {
           onChange={(e) => handleFormChange({ username: e.target.value })}
         />
         <TextInput
+          disabled
           type="email"
           id="email"
           placeholder="email"

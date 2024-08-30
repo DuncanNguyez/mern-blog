@@ -2,7 +2,6 @@ import { Client } from "@elastic/elasticsearch";
 import { IndicesCreateRequest } from "@elastic/elasticsearch/lib/api/types";
 import { createPostIndex } from "./post";
 const { ELS_USERNAME: username, ELS_PASSWORD: password } = process.env;
-console.log(password);
 const elsClient = new Client({
   node: "http://localhost:9200",
   auth: { username: username || "elastic", password: password || "" },

@@ -5,6 +5,7 @@ export interface User {
   username: string;
   imageUrl: string;
   isAuthor: boolean;
+  isAdmin?: boolean;
   password: string;
   bookmarks?: Array<string>;
   refreshToken: string;
@@ -85,6 +86,6 @@ export const {
   deleteFailure,
   deleteSuccess,
   signOutSuccess,
-  refreshToken
+  refreshToken,
 } = userSlice.actions;
 export default userSlice.reducer;

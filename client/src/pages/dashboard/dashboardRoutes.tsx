@@ -3,8 +3,14 @@ import CreatePost from "./CreatePost/CreatePost";
 import MyPosts from "./MyPosts/MyPost";
 import EditPost from "./EditPost/EditPost";
 import Bookmarks from "./Bookmarks/Bookmarks";
+import Users from "./Admin/Users";
 
 export default [
+  {
+    path: "users",
+    element: <Users />,
+    onlyAuthor: true,
+  },
   {
     path: "",
     element: <MyPosts />,
