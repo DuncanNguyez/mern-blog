@@ -22,9 +22,9 @@ app.use("/api/*", (req, res) => res.status(404).end());
 
 app.use(express.static(path.join(__dirname, "swagger/resource")));
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use(express.static(path.join(__dirname, "../../client/dist")));
+app.use(express.static(path.join(__dirname, "../dist")));
 app.get("/*", (req, res) => {
-  return res.sendFile(path.join(__dirname, "../../client/dist", "index.html"));
+  return res.sendFile(path.join(__dirname, "../dist", "index.html"));
 });
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

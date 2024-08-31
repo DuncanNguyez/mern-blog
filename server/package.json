@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "start": "node ./bin/index.js",
-    "build": "rm -r ./bin && tsc && copyfiles -u 1 src/swagger/resource/**/*.yml src/swagger/swagger.yml bin"
+    "build": "rm -r ./bin && tsc && copyfiles  src/swagger/resource/**/*.yml src/swagger/swagger.yml bin && copyfiles -u 2 ../client/dist/** bin"
   },
   "keywords": [],
   "author": "",

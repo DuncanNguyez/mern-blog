@@ -1,11 +1,18 @@
 import { createClient, ClientClosedError } from "redis";
 import { config } from "dotenv";
 config();
-const { REDIS_USERNAME: username, REDIS_PASSWORD: password } = process.env;
+const {
+  REDIS_USERNAME: username,
+  REDIS_PASSWORD: password,
+  REDIS_URL: url,
+  NODE_ENV: env,
+} = process.env;
 
 const redisClient = createClient({
   username,
   password,
+  url:
+    env === "dev" ? "redis://localhost:6379" : url || "redis://localhost:6379",
   socket: {
     reconnectStrategy: (retries) => {
       if (retries > 5) {
