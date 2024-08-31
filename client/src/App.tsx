@@ -31,25 +31,27 @@ export default function App() {
   const currentUser: U = useSelector((state: any) => state.user).currentUser;
   useEffect(() => {
     const checkAuth = async () => {
-      const res = await fetch(`/api/v1/auth`);
-      if (res.ok) {
-        return;
-      }
-      if (currentUser?.refreshToken) {
-        const resRefresh = await fetch(`/api/v1/auth/`, {
-          method: "post",
-          headers: {
-            "Content-type": "application/json",
-          },
-          body: JSON.stringify({ refreshToken: currentUser?.refreshToken }),
-        });
-        if (resRefresh.ok) {
-          const data = await resRefresh.json();
-          dispatch(refreshToken(data.refreshToken));
-        } else {
-          await fetch("/api/v1/auth/sign-out", { method: "post" });
-          await getAuth(app).signOut();
-          dispatch(signOutSuccess());
+      if (currentUser) {
+        const res = await fetch(`/api/v1/auth`);
+        if (res.ok) {
+          return;
+        }
+        if (currentUser.refreshToken) {
+          const resRefresh = await fetch(`/api/v1/auth/`, {
+            method: "post",
+            headers: {
+              "Content-type": "application/json",
+            },
+            body: JSON.stringify({ refreshToken: currentUser?.refreshToken }),
+          });
+          if (resRefresh.ok) {
+            const data = await resRefresh.json();
+            dispatch(refreshToken(data.refreshToken));
+          } else {
+            await fetch("/api/v1/auth/sign-out", { method: "post" });
+            await getAuth(app).signOut();
+            dispatch(signOutSuccess());
+          }
         }
       }
     };
@@ -73,7 +75,7 @@ export default function App() {
       dispatch(signOutSuccess());
     }, 1000 * 60 * 55);
     return () => clearInterval(id);
-  }, [currentUser?.refreshToken, dispatch]);
+  }, [currentUser, currentUser.refreshToken, dispatch]);
 
   useEffect(() => {
     getAuth(app).onAuthStateChanged(
