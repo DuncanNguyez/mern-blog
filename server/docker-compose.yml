@@ -7,7 +7,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     volumes:
-      - blog-mongodb:/var/lib/mongodb
+      - blog-mongodb:/data/db
     ports:
       - "27018:${MONGO_PORT}"
     healthcheck:
@@ -45,7 +45,7 @@ services:
     #     limits:
     #       memory: 2GB
     volumes:
-      - blog-els:/var/lib/els
+      - blog-els:/usr/share/elasticsearch/data
     ports:
       - "9201:${ELS_NODE_PORT}"
     healthcheck:
