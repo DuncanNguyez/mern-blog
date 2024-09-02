@@ -75,7 +75,7 @@ export default function App() {
       dispatch(signOutSuccess());
     }, 1000 * 60 * 55);
     return () => clearInterval(id);
-  }, [currentUser, currentUser.refreshToken, dispatch]);
+  }, [currentUser, currentUser?.refreshToken, dispatch]);
 
   useEffect(() => {
     getAuth(app).onAuthStateChanged(
