@@ -7,10 +7,11 @@ import {
 import { Alert, Button, Timeline } from "flowbite-react";
 import { IComment } from "./Comments";
 import { ChangeEvent, memo, useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { User } from "../../redux/user/userSlice";
 import CommentTree from "./CommentTree";
 import { Link } from "react-router-dom";
+import { showSignin } from "../../redux/popup/popupSlice";
 
 type Props = {
   comment: IComment;
@@ -51,6 +52,7 @@ const CommentItem = memo((props: Props) => {
   const [comment, setComment] = useState<IComment>();
   const [commentsNow, setCommentsNow] = useState<Array<IComment>>([]);
   const [addCommentError, setAddCommentError] = useState<string>();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const getUser = async () => {
@@ -89,6 +91,16 @@ const CommentItem = memo((props: Props) => {
     },
     [_id, currentUser?._id, postId]
   );
+  useEffect(() => {
+    if (currentUser) {
+      setComment((prev) => ({
+        postId: "",
+        content: { text: "" },
+        ...prev,
+        userId: currentUser._id,
+      }));
+    }
+  }, [currentUser]);
   const handleReply = useCallback(
     async (e: React.MouseEvent<HTMLButtonElement>) => {
       try {
@@ -96,7 +108,7 @@ const CommentItem = memo((props: Props) => {
           return;
         }
         if (!currentUser) {
-          return alert("You need to login in to comment");
+          return dispatch(showSignin());
         }
         const res = await fetch("/api/v1/comments", {
           method: "post",
@@ -125,7 +137,7 @@ const CommentItem = memo((props: Props) => {
         setAddCommentError(error.message);
       }
     },
-    [comment, commentsNow, currentUser]
+    [comment, commentsNow, currentUser, dispatch]
   );
   useEffect(() => {
     setTimeout(() => {
@@ -153,9 +165,9 @@ const CommentItem = memo((props: Props) => {
       setVoteNum(data?.voteNumber || 0);
     }
     if (res.status === 401) {
-      alert("You need to login in to vote");
+      return dispatch(showSignin());
     }
-  }, [_id, currentUser?._id]);
+  }, [_id, currentUser?._id, dispatch]);
 
   const handleDownVote = useCallback(async () => {
     const res = await fetch(`/api/v1/comments/${_id}/vote`, {
@@ -169,9 +181,9 @@ const CommentItem = memo((props: Props) => {
       setVoteNum(data?.voteNumber || 0);
     }
     if (res.status === 401) {
-      alert("You need to login in to vote");
+      return dispatch(showSignin());
     }
-  }, [_id, currentUser?._id]);
+  }, [_id, currentUser?._id, dispatch]);
   const isRootComment = !replyToId;
   return (
     <>
@@ -195,7 +207,9 @@ const CommentItem = memo((props: Props) => {
                 </div>
               </Link>
             </Timeline.Title>
-            <Timeline.Body className="w-full pl-12">{content.text}</Timeline.Body>
+            <Timeline.Body className="w-full pl-12">
+              {content.text}
+            </Timeline.Body>
             <div className="flex gap-10 items-center m-2">
               <div className="flex gap-2">
                 <span

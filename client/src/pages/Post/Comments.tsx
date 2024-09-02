@@ -1,8 +1,9 @@
 import { Alert, TextInput } from "flowbite-react";
 import CommentTree from "./CommentTree";
-import { ChangeEvent, useCallback, useState } from "react";
-import { useSelector } from "react-redux";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { User } from "../../redux/user/userSlice";
+import { showSignin } from "../../redux/popup/popupSlice";
 
 type Props = {
   postId?: string;
@@ -29,6 +30,7 @@ export default function Comments(props: Props) {
   const [comment, setComment] = useState<IComment>();
   const [commentsNow, setCommentsNow] = useState<Array<IComment>>([]);
   const [addCommentError, setAddCommentError] = useState<string>();
+  const dispatch = useDispatch();
   const handleChangeComment = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const { value } = e.target;
@@ -40,11 +42,21 @@ export default function Comments(props: Props) {
     },
     [currentUser?._id, postId]
   );
+  useEffect(() => {
+    if (currentUser) {
+      setComment((prev) => ({
+        postId: "",
+        content: { text: "" },
+        ...prev,
+        userId: currentUser._id,
+      }));
+    }
+  }, [currentUser]);
   const handleAddComment = useCallback(
     async (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.code === "Enter") {
         if (!currentUser) {
-          return alert("You need to login in to comment");
+          return dispatch(showSignin());
         }
         try {
           if (!comment || !comment.content.text) {
@@ -73,7 +85,7 @@ export default function Comments(props: Props) {
         }
       }
     },
-    [comment, commentsNow, currentUser]
+    [comment, commentsNow, currentUser, dispatch]
   );
   return (
     <div id="comment" className="pt-[76px] w-full">

@@ -25,6 +25,7 @@ import PostsByTag from "./pages/Posts/PostByTag.js";
 import User from "./pages/User/User.js";
 import { useEffect } from "react";
 import Search from "./pages/Search/Search.js";
+import SignInPopup from "./components/SignInPopup.js";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -133,6 +134,7 @@ export default function App() {
           }
         ></Route>
       </Routes>
+      <SignInPopup />
       <ScrollToTop />
       <FooterCom></FooterCom>
     </BrowserRouter>

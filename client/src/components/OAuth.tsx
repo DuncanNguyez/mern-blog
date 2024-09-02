@@ -6,8 +6,9 @@ import { signInFailure, signInSuccess } from "../redux/user/userSlice.ts";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useCallback } from "react";
+import { closeSignin } from "../redux/popup/popupSlice.ts";
 
-export default function OAuth() {
+export default function OAuth({ onPopUp = false }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const auth = getAuth(app);
@@ -36,11 +37,14 @@ export default function OAuth() {
         return dispatch(signInFailure(data.message));
       }
       dispatch(signInSuccess(data));
+      if (onPopUp) {
+        return dispatch(closeSignin());
+      }
       return navigate("/home");
     } catch (error: any) {
       dispatch(signInFailure(error.message));
     }
-  }, [auth, dispatch, navigate]);
+  }, [auth, dispatch, navigate, onPopUp]);
 
   return (
     <Button

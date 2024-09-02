@@ -1,6 +1,6 @@
 import { createTheme, ThemeProvider } from "@mui/material";
 import { RichTextReadOnly } from "mui-tiptap";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -17,6 +17,7 @@ import {
 } from "react-icons/bi";
 import { FaRegBookmark, FaBookmark, FaComment } from "react-icons/fa6";
 import { Spinner } from "flowbite-react";
+import { showSignin } from "../../redux/popup/popupSlice";
 
 export default function Post() {
   const { theme } = useSelector((state: any) => state.theme);
@@ -37,6 +38,7 @@ export default function Post() {
   const currentUser: User | null = useSelector(
     (state: any) => state.user
   ).currentUser;
+  const dispatch = useDispatch();
   const [upVoted, setUpVoted] = useState<boolean>(false);
   const [downVoted, setDownVoted] = useState<boolean>(false);
   const [bookmarked, setBookmarked] = useState<boolean>(
@@ -91,9 +93,9 @@ export default function Post() {
       setVoteNum(data?.voteNumber || 0);
     }
     if (res.status === 401) {
-      alert("You need to login in to vote");
+      return dispatch(showSignin());
     }
-  }, [_id, currentUser?._id]);
+  }, [_id, currentUser?._id, dispatch]);
 
   const handleDownVote = useCallback(async () => {
     const res = await fetch(`/api/v1/posts/${_id}/vote`, {
@@ -107,9 +109,9 @@ export default function Post() {
       setVoteNum(data?.voteNumber || 0);
     }
     if (res.status === 401) {
-      alert("You need to login in to vote");
+      return dispatch(showSignin());
     }
-  }, [_id, currentUser?._id]);
+  }, [_id, currentUser?._id, dispatch]);
 
   const handleBookmark = useCallback(async () => {
     const res = await fetch(
@@ -125,9 +127,9 @@ export default function Post() {
       );
     }
     if (res.status === 401) {
-      alert("You need to login in to vote");
+      return dispatch(showSignin());
     }
-  }, [_id, currentUser?._id]);
+  }, [_id, currentUser?._id, dispatch]);
 
   const mTheme = createTheme({
     palette: {
