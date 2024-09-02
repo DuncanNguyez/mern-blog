@@ -5,18 +5,18 @@ export default async () => {
   const {
     MONGO_USERNAME: user,
     MONGO_PASSWORD: pass,
-    MONGO_URI: uri,
+    MONGO_PORT: port,
+    MONGO_HOST: host,
     NODE_ENV: env,
   } = process.env;
   const cnn = await mongoose.connect(
-    env === "dev"
-      ? "mongodb://localhost:27017/blog-app"
-      : uri || "mongodb://localhost:27017/blog-app",
+    `mongodb://${env === "dev" ? "localhost:27017" : `${host}:${port}`}`,
     {
       autoIndex: false,
       authSource: "admin",
       user,
       pass,
+      dbName: "blog-app",
     }
   );
   console.log(`Connected to mongodb on port: ${cnn.connection.port}`);

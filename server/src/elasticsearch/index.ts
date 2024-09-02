@@ -4,12 +4,12 @@ import { createPostIndex } from "./post";
 const {
   ELS_USERNAME: username,
   ELS_PASSWORD: password,
-  ELS_NODE_URL: url,
+  ELS_NODE_HOST: host,
+  ELS_NODE_PORT: port,
   NODE_ENV: env,
 } = process.env;
 const elsClient = new Client({
-  node:
-    env === "dev" ? "http://localhost:9200" : url || "http://localhost:9200",
+  node: ` http://${env === "dev" ? "localhost:9200" : `${host}:${port}`}`,
   auth: { username: username || "elastic", password: password || "" },
 });
 const elsConnect = async () => {

@@ -1,5 +1,0 @@
-FROM node:21.0.6
-WORKDIR /app
-COPY ../server/bin ./
-COPY .env .env
-ENTRYPOINT [ "node","src/index.js" ]

@@ -4,15 +4,15 @@ config();
 const {
   REDIS_USERNAME: username,
   REDIS_PASSWORD: password,
-  REDIS_URL: url,
+  REDIS_HOST: host,
+  REDIS_PORT: port,
   NODE_ENV: env,
 } = process.env;
 
 const redisClient = createClient({
   username,
   password,
-  url:
-    env === "dev" ? "redis://localhost:6379" : url || "redis://localhost:6379",
+  url: `redis://${env === "dev" ? "localhost:6379" : `${host}:${port}`}`,
   socket: {
     reconnectStrategy: (retries) => {
       if (retries > 5) {

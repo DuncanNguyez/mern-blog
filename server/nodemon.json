@@ -1,6 +1,9 @@
 {
   "watch": ["src"],
   "ext": ".ts,js,yml",
+  "env": {
+    "NODE_ENV": "dev"
+  },
   "exec": "ts-node ./src/index.ts",
-  "delay":"2500"
+  "delay": "2500"
 }

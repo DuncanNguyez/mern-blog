@@ -8,10 +8,9 @@
   },
   "scripts": {
     "prepare": "husky",
-    "build-client":"cd client && npm run build",
-    "build-server":"cd server && npm run build",
-    "build":"npm run build-client && npm run  build-server"
-    
+    "build-client": "cd client && npm run build",
+    "build-server": "cd server && npm run build",
+    "build": "npm run build-client && npm run  build-server"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,css,scss,md}": [
