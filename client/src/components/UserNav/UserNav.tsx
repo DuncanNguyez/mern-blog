@@ -107,7 +107,7 @@ const UserNav = ({ user }: Props) => {
   );
 
   useEffect(() => {
-    const socket = io("http://localhost:3000", {
+    const socket = io({
       auth: { refreshToken: currentUser?.refreshToken },
       retries: 5,
       ackTimeout: 10000,
