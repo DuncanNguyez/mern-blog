@@ -40,7 +40,7 @@ pipeline {
                 sh 'cat package.json'
                 sh 'echo building'
                 sh 'npm run build'
-                sh 'docker compose -f server/docker-compose.yml up -d --build'
+                sh 'docker compose -f server/docker-compose.yml up  --build'
             }
         }
         stage('Init database') {
