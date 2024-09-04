@@ -34,7 +34,7 @@ pipeline {
         stage('Build app ') {
             steps {
                 sh 'echo install dependencies'
-                sh 'npm install --omit=dev'
+                sh 'npm install '
                 sh 'cd client && npm install'
                 sh 'cd server && npm install'
                 sh 'cat package.json'
