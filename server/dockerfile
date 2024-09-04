@@ -2,7 +2,7 @@ FROM node:21.6.0
 WORKDIR /app
 COPY  bin ./
 COPY .env .env
-RUN npm install --omit=dev 
+COPY node_modules node_modules
 EXPOSE 3000
 CMD ["tail", "-f", "/dev/null"]
 ENTRYPOINT [ "node","src/index.js" ]
