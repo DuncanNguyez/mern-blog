@@ -9,6 +9,7 @@ pipeline {
             steps {
                 echo 'Jenkins file is ok!'
                 sh 'whoami'
+                sh 'node --version'
             }
         }
 
@@ -18,8 +19,8 @@ pipeline {
                     file(credentialsId:'server-env-file', variable: 'serverEnvFile'),
                     file(credentialsId:'client-env-file', variable:'clientEnvFile')
                 ]) {
-                    sh "cp ${serverEnvFile} server/.evn"
-                    sh "cp ${clientEnvFile} client/.evn"
+                    sh "cp ${serverEnvFile} server/.env"
+                    sh "cp ${clientEnvFile} client/.env"
                     sh 'chmod 700 server/.env'
                     sh 'chmod 700 client/.env'
                     sh 'cat server/.env'
