@@ -43,10 +43,10 @@ pipeline {
                 sh 'docker compose -f server/docker-compose.yml up -d  --build'
             }
         }
-        stage('Init database') {
-            steps {
-                sh 'cd dbinit && sh init.sh'
-            }
-        }
+        // stage('Init database') {
+        //     steps {
+        //         sh 'cd dbinit && sh init.sh'
+        //     }
+        // }
     }
 }
