@@ -22,6 +22,7 @@ export interface INotification {
   type: NotificationType;
   message: string;
   read: boolean;
+  [key: string]: any;
 }
 
 const notificationSchema = new Schema<INotification>(
