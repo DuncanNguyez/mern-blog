@@ -51,7 +51,7 @@ pipeline {
         }
 
         stage('Packageking/push image, deploy to dev ') {
-            step {
+            steps {
                 withDockerRegistry(DOCKER_REGISTRY_CREDENTIALS) {
                     sh 'docker compose -f server/docker-compose.yml up -d  --build'
                     sh 'docker compose push'
@@ -68,7 +68,7 @@ pipeline {
 
         // set up to deploy into server vps
         stage('Pull ansible image') {
-            step {
+            steps {
                 withDockerRegistry(DOCKER_REGISTRY_CREDENTIALS) {
                     sh "docker pull ${DOCKER_HUB_USER}/ansible"
                 }
