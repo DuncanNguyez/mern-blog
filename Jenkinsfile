@@ -2,11 +2,13 @@ pipeline {
     agent any
 
     environment {
+        DOCKER_CREDENTIAL_ID = 'dockerhub'
+        DOCKER_REGISTRY_URL = 'https://index.docker.io/v1'
         SERVER_ENV = credentials('server-env-file')
         CLIENT_ENV = credentials('client-env-file')
-        DOCKER_REGISTRY_TOKEN = credentials('dockerhub')
-        DOCKER_REGISTRY_CREDENTIALS = [credentialsId: 'dockerhub', url: 'https://index.docker.io/v1']
+        DOCKER_REGISTRY_TOKEN = credentials('docker-registry_token')
         DOCKER_HUB_USER = credentials('dockerhub-user')
+        SERVICE_ACCOUNT = credentials('service-account')
     }
 
     tools {
@@ -24,18 +26,14 @@ pipeline {
 
         stage('set env') {
             steps {
-                withCredentials([
-                    file(credentialsId:'service-account', variable:'serviceAccount')
-                ]) {
-                    sh "cp ${SERVER_ENV} server/.env"
-                    sh "cp ${CLIENT_ENV} client/.env"
-                    sh "cp ${serviceAccount} server/mern-blog.json"
-                    sh 'chmod 700 server/.env'
-                    sh 'chmod 700 server/mern-blog.json'
-                    sh 'chmod 700 client/.env'
-                    sh 'cat server/.env'
-                    sh 'cat client/.env'
-                }
+                sh "cp ${SERVER_ENV} server/.env"
+                sh "cp ${CLIENT_ENV} client/.env"
+                sh "cp ${SERVICE_ACCOUNT} server/mern-blog.json"
+                sh 'chmod 700 server/.env'
+                sh 'chmod 700 server/mern-blog.json'
+                sh 'chmod 700 client/.env'
+                sh 'cat server/.env'
+                sh 'cat client/.env'
             }
         }
         stage('Build app ') {
@@ -52,7 +50,7 @@ pipeline {
 
         stage('Packageking/push image, deploy to dev ') {
             steps {
-                withDockerRegistry(DOCKER_REGISTRY_CREDENTIALS) {
+                withDockerRegistry(credentialsId: env.DOCKER_CREDENTIAL_ID, url:env.DOCKER_REGISTRY_URL) {
                     sh 'docker compose -f server/docker-compose.yml up -d  --build'
                     sh 'docker compose push'
                 }
@@ -69,7 +67,7 @@ pipeline {
         // set up to deploy into server vps
         stage('Pull ansible image') {
             steps {
-                withDockerRegistry(DOCKER_REGISTRY_CREDENTIALS) {
+                withDockerRegistry(credentialsId: env.DOCKER_CREDENTIAL_ID, url:env.DOCKER_REGISTRY_URL) {
                     sh "docker pull ${DOCKER_HUB_USER}/ansible"
                 }
             }
