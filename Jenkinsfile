@@ -56,7 +56,7 @@ pipeline {
 
         stage('Packageking/push image, deploy to dev ') {
             steps {
-                withDockerRegistry(credentialsId: "dockerhub", url: 'https://index.docker.io/v1') {
+                withDockerRegistry(credentialsId: "dockerhub", url: 'https://index.docker.io/v1/') {
                     // sh 'docker compose -f server/docker-compose.yml up -d  --build'
                     sh 'docker compose -f server/docker-compose.yml push'
                 }
