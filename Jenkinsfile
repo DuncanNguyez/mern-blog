@@ -35,7 +35,7 @@ pipeline {
                 sh 'chmod 700 client/.env'
             }
         }
-        stage('Build app ') {
+        stage('Install dependencies') {
             steps {
                 parallel(
                     client: {
@@ -45,8 +45,11 @@ pipeline {
                         sh 'cd server && npm install'
                     }
                 )
-                sh 'cat package.json'
-                sh 'echo building'
+            }
+        }
+
+        stage('Build app ') {
+            steps {
                 sh 'npm run build'
             }
         }
