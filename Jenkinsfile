@@ -16,48 +16,48 @@ pipeline {
     }
 
     stages {
-        stage('Test jenkins') {
-            steps {
-                echo 'Jenkins file is ok!'
-                sh 'whoami'
-                sh 'node --version'
-                sh "echo ${env.DOCKER_CREDENTIAL_ID} ${env.DOCKER_REGISTRY_URL}"
-            }
-        }
+        // stage('Test jenkins') {
+        //     steps {
+        //         echo 'Jenkins file is ok!'
+        //         sh 'whoami'
+        //         sh 'node --version'
+        //         sh "echo ${env.DOCKER_CREDENTIAL_ID} ${env.DOCKER_REGISTRY_URL}"
+        //     }
+        // }
 
-        stage('set env') {
-            steps {
-                sh "cp ${SERVER_ENV} server/.env"
-                sh "cp ${CLIENT_ENV} client/.env"
-                sh "cp ${SERVICE_ACCOUNT} server/mern-blog.json"
-                sh 'chmod 700 server/.env'
-                sh 'chmod 700 server/mern-blog.json'
-                sh 'chmod 700 client/.env'
-            }
-        }
-        stage('Install dependencies') {
-            steps {
-                parallel(
-                    client: {
-                          sh 'cd client && npm install '
-                    },
-                    server: {
-                        sh 'cd server && npm install'
-                    }
-                )
-            }
-        }
+        // stage('set env') {
+        //     steps {
+        //         sh "cp ${SERVER_ENV} server/.env"
+        //         sh "cp ${CLIENT_ENV} client/.env"
+        //         sh "cp ${SERVICE_ACCOUNT} server/mern-blog.json"
+        //         sh 'chmod 700 server/.env'
+        //         sh 'chmod 700 server/mern-blog.json'
+        //         sh 'chmod 700 client/.env'
+        //     }
+        // }
+        // stage('Install dependencies') {
+        //     steps {
+        //         parallel(
+        //             client: {
+        //                   sh 'cd client && npm install '
+        //             },
+        //             server: {
+        //                 sh 'cd server && npm install'
+        //             }
+        //         )
+        //     }
+        // }
 
-        stage('Build app ') {
-            steps {
-                sh 'npm run build'
-            }
-        }
+        // stage('Build app ') {
+        //     steps {
+        //         sh 'npm run build'
+        //     }
+        // }
 
         stage('Packageking/push image, deploy to dev ') {
             steps {
-                withDockerRegistry(credentialsId: env.DOCKER_CREDENTIAL_ID, url: env.DOCKER_REGISTRY_URL) {
-                    sh 'docker compose -f server/docker-compose.yml up -d  --build'
+                withDockerRegistry(credentialsId: "dockerhub", url: 'https://index.docker.io/v1') {
+                    // sh 'docker compose -f server/docker-compose.yml up -d  --build'
                     sh 'docker compose -f server/docker-compose.yml push'
                 }
             }
@@ -78,37 +78,37 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to server ') {
-            agent {
-                docker {
-                    image "${DOCKER_HUB_USER}/ansible"
-                    args '-u root'
-                }
-            }
+        // stage('Deploy to server ') {
+        //     agent {
+        //         docker {
+        //             image "${DOCKER_HUB_USER}/ansible"
+        //             args '-u root'
+        //         }
+        //     }
 
-            steps {
-                withCredentials([
-                    file(credentialsId:'duncan-hcm-01', variable:'privateKey'),
-                ]) {
-                    sh 'ls -lha'
-                    sh "cp ${privateKey} privateKey"
-                    sh 'chmod 700 privateKey'
-                    sh 'ansible --version'
-                    sh '''
-                            ansible -i host --private-key priavteKey -m ping all
-                        '''
-                    sh "cp ${SERVER_ENV} server/.env"
-                    sh 'chmod 700 server/.env '
-                    sh 'chmod +r server/server-docker-compose.yml'
-                    sh 'chmod +r dbinit/*'
-                    sh """
-                            ansible-playbook -i hosts --private-key privateKey playbook.yml \
-                            --extra-vars DOCKER_REGISTRY_TOKEN=${DOCKER_REGISTRY_TOKEN} \
-                            DOCKER_HUB_USER=${DOCKER_HUB_USER}  -v
-                        """
-                }
-            }
-        }
+        //     steps {
+        //         withCredentials([
+        //             file(credentialsId:'duncan-hcm-01', variable:'privateKey'),
+        //         ]) {
+        //             sh 'ls -lha'
+        //             sh "cp ${privateKey} privateKey"
+        //             sh 'chmod 700 privateKey'
+        //             sh 'ansible --version'
+        //             sh '''
+        //                     ansible -i host --private-key priavteKey -m ping all
+        //                 '''
+        //             sh "cp ${SERVER_ENV} server/.env"
+        //             sh 'chmod 700 server/.env '
+        //             sh 'chmod +r server/server-docker-compose.yml'
+        //             sh 'chmod +r dbinit/*'
+        //             sh """
+        //                     ansible-playbook -i hosts --private-key privateKey playbook.yml \
+        //                     --extra-vars DOCKER_REGISTRY_TOKEN=${DOCKER_REGISTRY_TOKEN} \
+        //                     DOCKER_HUB_USER=${DOCKER_HUB_USER}  -v
+        //                 """
+        //         }
+        //     }
+        // }
     }
 
 // post {
