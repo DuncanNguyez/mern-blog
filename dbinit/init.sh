@@ -7,8 +7,9 @@ if [ -z "$1" ]; then
 fi
 
 # export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs -d '\n')
-. ../server/.env 
-echo $eval eval="use('admin');db.auth('${MONGO_USERNAME//[$'\n']}','${MONGO_PASSWORD//[$'\n']}');use('blog-app');db.posts.find().count();"
+. ../server/.env
+eval="use('admin');db.auth('${MONGO_USERNAME//[$'\n']/}','${MONGO_PASSWORD//[$'\n']/}');use('blog-app');db.posts.find().count();"
+echo $eval
 
 mongoPostCount=$(
     docker exec blog-mongo mongosh --eval $eval
