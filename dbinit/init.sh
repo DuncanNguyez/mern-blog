@@ -3,7 +3,7 @@ echo "start"
 
 ls 
 cat ../server/.env
-export $(grep -v '^#' ../server/.env)
+export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs)
 
 mongoPostCount=$(
     docker exec blog-mongo mongosh --port 27017 --username $MONGO_USERNAME --password $MONGO_PASSWORD --authenticationDatabase admin --eval "use('blog-app');db.posts.find().count();"
