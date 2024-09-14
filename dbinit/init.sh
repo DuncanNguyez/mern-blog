@@ -6,11 +6,10 @@ if [ -z "$1" ]; then
     host="localhost"
 fi
 
-export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs -d '\n')
-# source ../server/.env
-eval="use('admin');db.auth('${MONGO_USERNAME//[$'\n']/}','${MONGO_PASSWORD//[$'\n']/}');use('blog-app');db.posts.find().count();"
+# export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs -d '\n')
+. ../server/.env 
+eval="use('admin');db.auth('$MONGO_USERNAME','$MONGO_PASSWORD');use('blog-app');db.posts.find().count();"
 echo $eval
-
 mongoPostCount=$(
     docker exec blog-mongo mongosh --eval $eval
 )
