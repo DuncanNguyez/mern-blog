@@ -8,9 +8,9 @@ if [ -z "$1" ]; then
 fi
 
 export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs)
-echo "$MONGO_USERNAME"
+eval="use('blog-app');db.posts.find().count();"
 mongoPostCount=$(
-    docker exec blog-mongo mongosh --port 27017 --username $MONGO_USERNAME --password $MONGO_PASSWORD --authenticationDatabase admin --eval "use('blog-app');db.posts.find().count();"
+    docker exec blog-mongo mongosh --port 27017 --username $MONGO_USERNAME --password $MONGO_PASSWORD --authenticationDatabase admin --eval $eval
 )
 
 echo "mongoPost: $mongoPostCount"
