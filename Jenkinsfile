@@ -37,8 +37,6 @@ pipeline {
         }
         stage('Build app ') {
             steps {
-                sh 'echo install dependencies'
-                sh 'npm install '
                 parallel(
                     client: {
                           sh 'cd client && npm install '
