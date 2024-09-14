@@ -21,6 +21,7 @@ pipeline {
                 echo 'Jenkins file is ok!'
                 sh 'whoami'
                 sh 'node --version'
+                sh "echo ${env.DOCKER_CREDENTIAL_ID} ${env.DOCKER_REGISTRY_URL}"
             }
         }
 
@@ -32,16 +33,20 @@ pipeline {
                 sh 'chmod 700 server/.env'
                 sh 'chmod 700 server/mern-blog.json'
                 sh 'chmod 700 client/.env'
-                sh 'cat server/.env'
-                sh 'cat client/.env'
             }
         }
         stage('Build app ') {
             steps {
                 sh 'echo install dependencies'
                 sh 'npm install '
-                sh 'cd client && npm install'
-                sh 'cd server && npm install'
+                parallel(
+                    client: {
+                          sh 'cd client && npm install '
+                    },
+                    server: {
+                        sh 'cd server && npm install'
+                    }
+                )
                 sh 'cat package.json'
                 sh 'echo building'
                 sh 'npm run build'
@@ -50,7 +55,7 @@ pipeline {
 
         stage('Packageking/push image, deploy to dev ') {
             steps {
-                withDockerRegistry(credentialsId: env.DOCKER_CREDENTIAL_ID, url:env.DOCKER_REGISTRY_URL) {
+                withDockerRegistry(credentialsId: env.DOCKER_CREDENTIAL_ID, url: env.DOCKER_REGISTRY_URL) {
                     sh 'docker compose -f server/docker-compose.yml up -d  --build'
                     sh 'docker compose -f server/docker-compose.yml push'
                 }
@@ -67,7 +72,7 @@ pipeline {
         // set up to deploy into server vps
         stage('Pull ansible image') {
             steps {
-                withDockerRegistry(credentialsId: env.DOCKER_CREDENTIAL_ID, url:env.DOCKER_REGISTRY_URL) {
+                withDockerRegistry(credentialsId: env.DOCKER_CREDENTIAL_ID, url: env.DOCKER_REGISTRY_URL) {
                     sh "docker pull ${DOCKER_HUB_USER}/ansible"
                 }
             }
@@ -105,10 +110,10 @@ pipeline {
         }
     }
 
-    post {
-        // Clean after build
-        always {
-            cleanWs()
-        }
-    }
+// post {
+//     // Clean after build
+//     always {
+//         cleanWs()
+//     }
+// }
 }
