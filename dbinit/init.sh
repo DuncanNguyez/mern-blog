@@ -7,17 +7,19 @@ if [ -z "$1" ]; then
 fi
 
 export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs)
-eval="use('blog-app');db.posts.find().count();"
+eval="use('admin');db.auth('$MONGO_USERNAME','$MONGO_PASSWORD');use('blog-app');db.posts.find().count();"
+echo $eval 
 mongoPostCount=$(
-    docker exec blog-mongo mongosh --port 27017 --username $MONGO_USERNAME --password $MONGO_PASSWORD --authenticationDatabase admin --eval $eval
+    docker exec blog-mongo mongosh --eval $eval
 )
 
 echo "mongoPost: $mongoPostCount"
-
+mongoinit="docker exec blog-mongo mongorestore --host localhost --port 27017 --username $MONGO_USERNAME --password $MONGO_PASSWORD --db blog-app --authenticationDatabase admin --archive=mongo.init --gzip"
+echo $mongoinit
 if [ "$mongoPostCount" -eq 0 ]; then
     echo "init mongodb"
     docker cp mongo.init blog-mongo:mongo.init
-    docker exec blog-mongo mongorestore --host localhost --port 27017 --username $MONGO_USERNAME --password $MONGO_PASSWORD --db blog-app --authenticationDatabase admin --archive=mongo.init --gzip
+    exec $mongoinit
 else
     echo "has been db"
 fi
