@@ -1,6 +1,8 @@
 #!/bin/bash
 echo "start"
 
+ls 
+cat ../server/.env
 export $(grep -v '^#' ../server/.env)
 
 mongoPostCount=$(
