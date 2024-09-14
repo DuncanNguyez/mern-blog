@@ -6,16 +6,15 @@ if [ -z "$1" ]; then
     host="localhost"
 fi
 
-# export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs -d '\n')
-. ../server/.env 
-eval="use('admin');db.auth('$MONGO_USERNAME','$MONGO_PASSWORD');use('blog-app');db.posts.find().count();"
+export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs -d '\n')
+eval=$(echo -n "use('admin');db.auth('$MONGO_USERNAME','$MONGO_PASSWORD');use('blog-app');db.posts.find().count();" | tr -d '\r')
 echo $eval
 mongoPostCount=$(
     docker exec blog-mongo mongosh --eval $eval
 )
 
 echo "mongoPost: $mongoPostCount"
-mongoinit="docker exec blog-mongo mongorestore --host localhost --port 27017 --username $MONGO_USERNAME --password $MONGO_PASSWORD --db blog-app --authenticationDatabase admin --archive=mongo.init --gzip"
+mongoinit=$(echo -n "docker exec blog-mongo mongorestore --host localhost --port 27017 --username $MONGO_USERNAME --password $MONGO_PASSWORD --db blog-app --authenticationDatabase admin --archive=mongo.init --gzip" | tr -d '\r')
 echo $mongoinit
 if [ "$mongoPostCount" -eq 0 ]; then
     echo "init mongodb"
