@@ -78,43 +78,43 @@ pipeline {
                 }
             }
         }
-        // stage('Deploy to server ') {
-        //     agent {
-        //         docker {
-        //             image "${DOCKER_HUB_USER}/ansible"
-        //             args '-u root'
-        //         }
-        //     }
+        stage('Deploy to server ') {
+            agent {
+                docker {
+                    image "${DOCKER_HUB_USER}/ansible"
+                    args '-u root'
+                }
+            }
 
-    //     steps {
-    //         withCredentials([
-    //             file(credentialsId:'duncan-hcm-01', variable:'privateKey'),
-    //         ]) {
-    //             sh 'ls -lha'
-    //             sh "cp ${privateKey} privateKey"
-    //             sh 'chmod 700 privateKey'
-    //             sh 'ansible --version'
-    //             sh '''
-    //                     ansible -i host --private-key priavteKey -m ping all
-    //                 '''
-    //             sh "cp ${SERVER_ENV} server/.env"
-    //             sh 'chmod 700 server/.env '
-    //             sh 'chmod +r server/server-docker-compose.yml'
-    //             sh 'chmod +r dbinit/*'
-    //             sh """
-    //                     ansible-playbook -i hosts --private-key privateKey playbook.yml \
-    //                     --extra-vars DOCKER_REGISTRY_TOKEN=${DOCKER_REGISTRY_TOKEN} \
-    //                     DOCKER_HUB_USER=${DOCKER_HUB_USER}  -v
-    //                 """
-    //         }
-    //     }
-    // }
+            steps {
+                withCredentials([
+                file(credentialsId:'duncan-hcm-01', variable:'privateKey'),
+            ]) {
+                    sh 'ls -lha'
+                    sh "cp ${privateKey} privateKey"
+                    sh 'chmod 700 privateKey'
+                    sh 'ansible --version'
+                    sh '''
+                        ansible -i host --private-key priavteKey -m ping all
+                    '''
+                    sh "cp ${SERVER_ENV} server/.env"
+                    sh 'chmod 700 server/.env '
+                    sh 'chmod +r server/server-docker-compose.yml'
+                    sh 'chmod +r dbinit/*'
+                    sh """
+                        ansible-playbook -i hosts --private-key privateKey playbook.yml \
+                        --extra-vars DOCKER_REGISTRY_TOKEN=${DOCKER_REGISTRY_TOKEN} \
+                        DOCKER_HUB_USER=${DOCKER_HUB_USER}  -v
+                    """
+            }
+            }
+        }
     }
 
-    // post {
-    //     // Clean after build
-    //     always {
-    //         cleanWs()
-    //     }
-    // }
+    post {
+        // Clean after build
+        always {
+            cleanWs()
+        }
+    }
 }
