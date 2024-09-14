@@ -103,8 +103,8 @@ pipeline {
                     sh 'chmod +r dbinit/*'
                     sh """
                         ansible-playbook -i hosts --private-key privateKey playbook.yml \
-                        --extra-vars DOCKER_REGISTRY_TOKEN=${DOCKER_REGISTRY_TOKEN} \
-                        DOCKER_HUB_USER=${DOCKER_HUB_USER}  -v
+                        --extra-vars "DOCKER_REGISTRY_TOKEN=${DOCKER_REGISTRY_TOKEN} \
+                        DOCKER_HUB_USER=${DOCKER_HUB_USER}"  -v
                     """
             }
             }
