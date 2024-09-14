@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
     host="localhost"
 fi
 
-export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs)
+export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs -d '\n')
 eval="use('admin');db.auth('$MONGO_USERNAME','$MONGO_PASSWORD');use('blog-app');db.posts.find().count();"
 echo $eval 
 mongoPostCount=$(
