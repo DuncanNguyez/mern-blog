@@ -6,8 +6,8 @@ if [ -z "$1" ]; then
     host="localhost"
 fi
 
-# export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs -d '\n')
-source ../server/.env
+export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs -d '\n')
+# source ../server/.env
 eval="use('admin');db.auth('${MONGO_USERNAME//[$'\n']/}','${MONGO_PASSWORD//[$'\n']/}');use('blog-app');db.posts.find().count();"
 echo $eval
 
