@@ -90,13 +90,13 @@ pipeline {
                 withCredentials([
                 file(credentialsId:'duncan-hcm-01', variable:'privateKey'),
             ]) {
-                    sh 'ls -lha'
                     sh "cp ${privateKey} privateKey"
                     sh 'chmod 700 privateKey'
                     sh 'ansible --version'
                     sh '''
-                        ansible -i host --private-key priavteKey -m ping all
-                    '''
+                            ansible -i hosts --private-key privateKey -m ping all \
+                            -e "ansible_ssh_common_args=\'-o StrictHostKeyChecking=no\'"
+                        '''
                     sh "cp ${SERVER_ENV} server/.env"
                     sh 'chmod 700 server/.env '
                     sh 'chmod +r server/server-docker-compose.yml'
