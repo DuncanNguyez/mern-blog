@@ -66,7 +66,7 @@ pipeline {
         // init database on dev
         stage('Init database') {
             steps {
-                sh 'cd dbinit && sh init.sh'
+                sh 'cd dbinit && sh init.sh host.docker.internal'
             }
         }
 

@@ -1,8 +1,12 @@
 #!/bin/bash
 echo "start"
 
-ls 
-cat ../server/.env
+# host.docker.internal
+host=$1
+if [ -z "$1" ]; then
+    host= "localhost"
+fi
+
 export $(grep -vE '^\s*#|^\s*$' ../server/.env | xargs)
 
 mongoPostCount=$(
@@ -16,10 +20,10 @@ if [ "$mongoPostCount" -gt 0 ]; then
 else
     echo "init mongodb"
     docker cp mongo.init blog-mongo:mongo.init
-    docker exec  blog-mongo mongorestore --host localhost --port 27017 --username $MONGO_USERNAME --password $MONGO_PASSWORD --db blog-app --authenticationDatabase admin --archive=mongo.init --gzip
+    docker exec blog-mongo mongorestore --host localhost --port 27017 --username $MONGO_USERNAME --password $MONGO_PASSWORD --db blog-app --authenticationDatabase admin --archive=mongo.init --gzip
 fi
 
-loglineEls=$(curl -s -X GET "http://localhost:9201/post/_count" -H 'Content-Type: application/json')
+loglineEls=$(curl -s -X GET "http://$host:9201/post/_count" -H 'Content-Type: application/json')
 elsPostCount=$(echo "$loglineEls" | grep -Eo '"count":[0-9]+' | grep -Eo '[0-9]+')
 
 echo "elsPost: $elsPostCount"
@@ -28,7 +32,7 @@ if [ "$elsPostCount" -gt 0 ]; then
     echo "has been els db"
 else
     echo "init elsdb"
-    npx elasticdump --input elsinit.json --output http://localhost:9201
+    npx elasticdump --input elsinit.json --output http://$host:9201
 fi
 
 echo "done"
