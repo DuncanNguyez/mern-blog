@@ -52,7 +52,7 @@ pipeline {
             steps {
                 withDockerRegistry(credentialsId: env.DOCKER_CREDENTIAL_ID, url:env.DOCKER_REGISTRY_URL) {
                     sh 'docker compose -f server/docker-compose.yml up -d  --build'
-                    sh 'docker compose push'
+                    sh 'docker compose -f server/docker-compose.yml push'
                 }
             }
         }
