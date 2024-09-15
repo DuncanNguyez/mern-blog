@@ -16,14 +16,13 @@ pipeline {
     }
 
     stages {
-        // stage('Test jenkins') {
-        //     steps {
-        //         echo 'Jenkins file is ok!'
-        //         sh 'whoami'
-        //         sh 'node --version'
-        //         sh "echo ${env.DOCKER_CREDENTIAL_ID} ${env.DOCKER_REGISTRY_URL}"
-        //     }
-        // }
+        stage('Test jenkins') {
+            steps {
+                echo 'Jenkins file is ok!'
+                sh 'whoami'
+                sh 'node --version'
+            }
+        }
 
         stage('set env') {
             steps {
@@ -35,33 +34,36 @@ pipeline {
                 sh 'chmod 700 client/.env'
             }
         }
-        // stage('Install dependencies') {
-        //     steps {
-        //         parallel(
-        //             client: {
-        //                   sh 'cd client && npm install '
-        //             },
-        //             server: {
-        //                 sh 'cd server && npm install'
-        //             }
-        //         )
-        //     }
-        // }
+        stage('Install dependencies') {
+            steps {
+                parallel(
+                    root: {
+                        sh 'npm install'
+                    },
+                    client: {
+                          sh 'cd client && npm install '
+                    },
+                    server: {
+                        sh 'cd server && npm install'
+                    }
+                )
+            }
+        }
 
-        // stage('Build app ') {
-        //     steps {
-        //         sh 'npm run build'
-        //     }
-        // }
+        stage('Build app ') {
+            steps {
+                sh 'npm run build'
+            }
+        }
 
-        // stage('Packageking/push image, deploy to dev ') {
-        //     steps {
-        //         withDockerRegistry(credentialsId: env.DOCKER_CREDENTIAL_ID, url: env.DOCKER_REGISTRY_URL) {
-        //             sh 'docker compose -f server/docker-compose.yml up -d  --build'
-        //             sh 'docker compose -f server/docker-compose.yml push'
-        //         }
-        //     }
-        // }
+        stage('Packageking/push image, deploy to dev ') {
+            steps {
+                withDockerRegistry(credentialsId: env.DOCKER_CREDENTIAL_ID, url: env.DOCKER_REGISTRY_URL) {
+                    sh 'docker compose -f server/docker-compose.yml up -d  --build'
+                    sh 'docker compose -f server/docker-compose.yml push'
+                }
+            }
+        }
 
         // init database on dev
         stage('Init database') {
