@@ -95,6 +95,21 @@ const getCommentsByPost = async (
     const key = hashObject({ id, skip, limit, onlyRoot });
     const commentsString = await redisClient.get(key);
     if (commentsString) {
+      handleAsyncFn(async () => {
+        const comments = await Comment.find(
+          {
+            postId: id,
+            ...(onlyRoot ? { replyToId: { $exists: false } } : {}),
+          },
+          {},
+          {
+            sort: { voteNumber: -1, createdAt: 1 },
+            skip,
+            limit,
+          } as FilterQuery<IComment>
+        ).lean();
+        redisClient.set(key, JSON.stringify(comments), { EX });
+      });
       return JSON.parse(commentsString);
     } else {
       const comments = await Comment.find(
@@ -125,6 +140,20 @@ const getCommentsByComment = async (
     const key = hashObject({ replyToId, skip, limit });
     const commentsString = await redisClient.get(key);
     if (commentsString) {
+      handleAsyncFn(async () => {
+        const comments = await Comment.find(
+          {
+            replyToId,
+          },
+          {},
+          {
+            sort: { voteNumber: -1, createdAt: 1 },
+            skip,
+            limit,
+          } as FilterQuery<IComment>
+        ).lean();
+        redisClient.set(key, JSON.stringify(comments), { EX });
+      });
       return JSON.parse(commentsString);
     }
     const comments = await Comment.find(
