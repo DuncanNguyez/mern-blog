@@ -67,7 +67,12 @@ const UserNav = ({ user }: Props) => {
         console.log(error);
       }
     };
-    getNotifications();
+    const stId = setTimeout(() => {
+      getNotifications();
+    }, 2000);
+    return () => {
+      clearTimeout(stId);
+    };
   }, [user._id]);
   const handleToNotification = useCallback(
     async (
